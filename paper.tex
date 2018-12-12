@@ -56,7 +56,7 @@ We took the idea from our SPIRE paper and we made it great, using ZSTD compressi
 Review whatever we may have missed from state of the art in prev. papers. Also explain ZSTD and applications. Finally, explain our work-in-progress model for trip representation.
 
 \subsection{A model for compact trip representation}
-So here goes a picture where we have stops $s \in S$, lines $l \in L$ and journeys $j^l \in J^l$. Will possibly redefine to make clear that they are not sets, and then have subindexes like $s_i$ or $j^l_i$.
+So here goes a picture where we have stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
 
 Users can be attached to trips, but we don't care about them yet.
 
@@ -65,10 +65,10 @@ Users can be attached to trips, but we don't care about them yet.
 We represent the network like this:
 
 \begin{itemize}
-    \item $lineStop_l(i)$ is the $i$th stop of line $l$
-    \item $stopLine_s(i)$ is the $i$th line that makes a stop at the stop $s$
-    \item $avgTime_l(i)$ is the average time in seconds that it takes for a vehicle of line $l$ to reach its $i$th stop from the start of a journey
-    \item $initialTime_l(i)$ is the starting time of the $i$th journey for line $l$
+    \item $lineStop_i(j)$ is the $j$th stop of line $l_i$
+    \item $stopLine_i(j)$ is the $j$th line that makes a stop at the stop $s_i$
+    \item $avgTime_i(j)$ is the average time in seconds that it takes for a vehicle of line $l_i$ to reach its $j$th stop from the start of a journey
+    \item $initialTime_i(k)$ is the starting time of the journey $j_k$ for line $l_i$
 \end{itemize}
 
 All boring style except for \texttt{initialTimes}, which is compressed with sampled ZSTD.
@@ -77,7 +77,7 @@ All boring style except for \texttt{initialTimes}, which is compressed with samp
 Tirso please explain what you did. Did you use bitmaps for partial sums? Matrices? Any other trick from inverted lists? Also explain how queries are solved again, in detail.
 
 \subsection{CSA++}
-A user trip can be represented by the stops where the user gets on the transportation system, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes\marginnote{I must explain previously why journeys are codes and not ids} corresponding to the journeys that compose the trip. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user got off, which line and journey will logically match the line and journey of the last get-on stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user\marginnote{[CITATION NEEDED]}.
+A user trip can be represented by the stops where the user gets on the transportation system, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user got off, which line and journey will logically match the line and journey of the last get-on stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user\marginnote{[CITATION NEEDED]}.
 
 We use three complementary structures to represent each component of the sequence:
 \begin{enumerate}[(i)]
