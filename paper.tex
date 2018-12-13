@@ -13,7 +13,11 @@
 % \renewcommand\UrlFont{\color{blue}\rmfamily}
 
 \usepackage{enumerate}
+\usepackage[linesnumbered,commentsnumbered,boxed]{algorithm2e}
 \usepackage{marginnote}
+
+\newcommand{\acumm}{T-Matrices} % T is for Tirso!
+\newcommand{\ctr}{NewCTR (name subject to change)}
 
 \begin{document}
 %
@@ -71,12 +75,12 @@ We represent the network like this:
     \item $initialTime_i(k)$ is the starting time of the journey $j_k$ for line $l_i$
 \end{itemize}
 
-All boring style except for \texttt{initialTimes}, which is compressed with sampled ZSTD.
+All of them stored explicitly except for $initialTime$, which is compressed with sampled ZSTD.
 
-\subsection{Matrices}
+\subsection{\acumm}
 Tirso please explain what you did. Did you use bitmaps for partial sums? Matrices? Any other trick from inverted lists? Also explain how queries are solved again, in detail.
 
-\subsection{CSA++}
+\subsection{\ctr}
 A user trip can be represented by the stops where the user gets on the transportation system, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user got off, which line and journey will logically match the line and journey of the last get-on stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user\marginnote{[CITATION NEEDED]}.
 
 We use three complementary structures to represent each component of the sequence:
@@ -93,6 +97,33 @@ Then we can use (ii) to restrict lines.
 And finally we can restrict times by finding out the right jcodes and filtering through (iii).
 
 Theoretically we can answer anything. It's a representation, after all...
+
+\begin{algorithm}[H]
+\SetKwData{la}{l$_a$}\SetKwData{lz}{l$_z$}\SetKwData{sa}{s$_a$}\SetKwData{sz}{s$_z$}\SetKwData{ta}{t$_a$}\SetKwData{tz}{t$_z$}\SetKwData{pattern}{pattern}\SetKwData{left}{left}\SetKwData{right}{right}\SetKwData{csa}{CSA}\SetKwData{wmj}{WMJ}\SetKwData{leftzero}{left$_0$}\SetKwData{rightzero}{right$_0$}\SetKwData{a}{a}\SetKwData{z}{z}\SetKwData{ja}{j$_a$}\SetKwData{jz}{j$_z$}\SetKwData{n}{n}\SetKwData{ap}{a'}\SetKwData{zp}{z'}\SetKwData{offset}{offset}
+ \SetKwFunction{GetRange}{GetRange}\SetKwFunction{GetJCodes}{GetJCodes}\SetKwFunction{GetCount}{GetCount}\SetKwFunction{GetPsi}{$\Psi$}\SetKwFunction{GetRangeSpecial}{GetRange$^*$}\SetKwFunction{wml}{WML}\SetKwFunction{TrackUp}{TrackUp}\SetKwFunction{Select}{Select}
+ \KwData{\la,\lz,\sa,\sz, times \ta,\tz and length of the sequence \n}
+ \KwResult{Number of occurences}
+ \BlankLine
+ \pattern $\leftarrow \{\sz,0,\sa\}$\;
+ \left,\right $\leftarrow$ \GetRange{\csa, $0$, \n, \pattern}\;
+ \leftzero $\leftarrow$ \GetPsi{\csa, \left}\;
+ \rightzero $\leftarrow$ \GetPsi{\csa, \right}\;
+ \tcp{\right-\left = \rightzero-\leftzero}
+ \a,\z $\leftarrow$ \GetRange{\wml{0},\leftzero,\rightzero,\la}\;
+ \ja,\jz $\leftarrow$ \GetJCodes{\la,\sa,\ta,\tz}\;
+ \a,\z $\leftarrow$ \GetRangeSpecial{\wmj,\a,\z,\ja,\jz}\;
+ \ap $\leftarrow$ \TrackUp{\wml{0},\a}\;
+ \zp $\leftarrow$ \TrackUp{\wml{0},\z}\;
+ \tcp{\z-\a = \zp-\ap}
+ \offset $\leftarrow$ \Select{\csa,\sz}\;
+ \a,\z $\leftarrow$ \GetRange{\wml{\sz},\left-\offset~$+$~\ap-\leftzero,
+ \left-\offset~$+$~\ap-\leftzero,\lz}\;
+ \ja,\jz $\leftarrow$ \GetJCodes{\lz,\sz,\ta,\tz}\;
+ \Return{\GetCount{\wmj,\offset~+~\a,\offset~+~\z,\ja,\jz}}\;
+ 
+ \caption{Querying for all features on \ctr}
+\end{algorithm}
+
 
 \section{Experiments}
 For space, I propose to compare with our previous structures and with a plain representation using bits per symbol (bps). Otherwise, the baseline we select for our $\%$ can be misleading.
