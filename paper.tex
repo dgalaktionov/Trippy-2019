@@ -17,7 +17,7 @@
 \usepackage{marginnote}
 
 \newcommand{\acumm}{T-Matrices} % T is for Tirso!
-\newcommand{\ctr}{NewCTR (name subject to change)}
+\newcommand{\ctr}{NewCTR (name subject to change)\ }
 
 \begin{document}
 %
@@ -77,6 +77,22 @@ We represent the network like this:
 
 All of them stored explicitly except for $initialTime$, which is compressed with sampled ZSTD.
 
+\begin{algorithm}[H]
+\SetKwData{l}{$l$}\SetKwData{lz}{l$_z$}\SetKwData{s}{s}\SetKwData{sz}{s$_z$}\SetKwData{ta}{t$_a$}\SetKwData{tz}{t$_z$}\SetKwData{pattern}{pattern}\SetKwData{left}{left}\SetKwData{right}{right}\SetKwData{csa}{CSA}\SetKwData{wmj}{WMJ}\SetKwData{leftzero}{left$_0$}\SetKwData{rightzero}{right$_0$}\SetKwData{i}{i}\SetKwData{z}{z}\SetKwData{ja}{j$_a$}\SetKwData{jz}{j$_z$}\SetKwData{n}{n}\SetKwData{ap}{a'}\SetKwData{zp}{z'}\SetKwData{offset}{offset}
+ \SetKwFunction{GetBounds}{GetBounds}\SetKwFunction{GetJCodes}{GetJCodes}\SetKwFunction{GetCount}{GetCount}\SetKwFunction{GetPsi}{$\Psi$}\SetKwFunction{GetRangeSpecial}{GetRange$^*$}\SetKwFunction{bsearch}{binary\_search}\SetKwFunction{lbound}{lower\_bound}\SetKwFunction{ubound}{upper\_bound}
+ \SetKwProg{Fn}{Function}{\string:}{}
+ 
+ \Fn{\GetJCodes{\l,\s,\ta,\tz}}{
+ \KwData{line \l, stop \s, times \ta,\tz}
+ \KwResult{jcodes for \ta and \tz}
+ \BlankLine
+ \offset $\leftarrow$ $avgTime_{\l}(\bsearch{$lineStop_\l$, \s})$\;
+ \Return{\lbound{$initialTime_\l$, \ta-\offset}, \ubound{$initialTime_\l$, \tz-\offset}}\;
+ }
+ 
+ \caption{Obtaining the codes of the journeys from the line \l that should arrive to the stop \s within the time range given by \ta and \tz}
+\end{algorithm}
+
 \subsection{\acumm}
 Tirso please explain what you did. Did you use bitmaps for partial sums? Matrices? Any other trick from inverted lists? Also explain how queries are solved again, in detail.
 
@@ -99,9 +115,12 @@ And finally we can restrict times by finding out the right jcodes and filtering 
 Theoretically we can answer anything. It's a representation, after all...
 
 \begin{algorithm}[H]
-\SetKwData{la}{l$_a$}\SetKwData{lz}{l$_z$}\SetKwData{sa}{s$_a$}\SetKwData{sz}{s$_z$}\SetKwData{ta}{t$_a$}\SetKwData{tz}{t$_z$}\SetKwData{pattern}{pattern}\SetKwData{left}{left}\SetKwData{right}{right}\SetKwData{csa}{CSA}\SetKwData{wmj}{WMJ}\SetKwData{leftzero}{left$_0$}\SetKwData{rightzero}{right$_0$}\SetKwData{a}{a}\SetKwData{z}{z}\SetKwData{ja}{j$_a$}\SetKwData{jz}{j$_z$}\SetKwData{n}{n}\SetKwData{ap}{a'}\SetKwData{zp}{z'}\SetKwData{offset}{offset}
- \SetKwFunction{GetRange}{GetRange}\SetKwFunction{GetJCodes}{GetJCodes}\SetKwFunction{GetCount}{GetCount}\SetKwFunction{GetPsi}{$\Psi$}\SetKwFunction{GetRangeSpecial}{GetRange$^*$}\SetKwFunction{wml}{WML}\SetKwFunction{TrackUp}{TrackUp}\SetKwFunction{Select}{Select}
- \KwData{\la,\lz,\sa,\sz, times \ta,\tz and length of the sequence \n}
+\SetKwData{la}{$l_a$}\SetKwData{lz}{$l_z$}\SetKwData{sa}{s$_a$}\SetKwData{sz}{s$_z$}\SetKwData{ta}{t$_a$}\SetKwData{tz}{t$_z$}\SetKwData{pattern}{pattern}\SetKwData{left}{left}\SetKwData{right}{right}\SetKwData{csa}{CSA}\SetKwData{wmj}{WMJ}\SetKwData{leftzero}{left$_0$}\SetKwData{rightzero}{right$_0$}\SetKwData{a}{a}\SetKwData{z}{z}\SetKwData{ja}{j$_a$}\SetKwData{jz}{j$_z$}\SetKwData{n}{n}\SetKwData{ap}{a'}\SetKwData{zp}{z'}\SetKwData{offset}{offset}
+ \SetKwFunction{GetRange}{GetRange}\SetKwFunction{GetJCodes}{GetJCodes}\SetKwFunction{GetCount}{GetCount}\SetKwFunction{GetPsi}{$\Psi$}\SetKwFunction{GetRangeSpecial}{GetRange$^*$}\SetKwFunction{wml}{WML}\SetKwFunction{TrackUp}{TrackUp}\SetKwFunction{Select}{Select}\SetKwFunction{fxy}{FromXtoY\_full}
+ \SetKwProg{Fn}{Function}{\string:}{}
+ 
+ \Fn{\fxy{\la,\lz,\sa,\sz,\ta,\tz,\n}}{
+ \KwData{lines \la,\lz, stops \sa,\sz, times \ta,\tz and length of the sequence \n}
  \KwResult{Number of occurences}
  \BlankLine
  \pattern $\leftarrow \{\sz,0,\sa\}$\;
@@ -109,19 +128,20 @@ Theoretically we can answer anything. It's a representation, after all...
  \leftzero $\leftarrow$ \GetPsi{\csa, \left}\;
  \rightzero $\leftarrow$ \GetPsi{\csa, \right}\;
  \tcp{\right-\left = \rightzero-\leftzero}
- \a,\z $\leftarrow$ \GetRange{\wml{0},\leftzero,\rightzero,\la}\;
+ \a,\z $\leftarrow$ \GetRange{\wml{$0$},\leftzero,\rightzero,\la}\;
  \ja,\jz $\leftarrow$ \GetJCodes{\la,\sa,\ta,\tz}\;
  \a,\z $\leftarrow$ \GetRangeSpecial{\wmj,\a,\z,\ja,\jz}\;
- \ap $\leftarrow$ \TrackUp{\wml{0},\a}\;
- \zp $\leftarrow$ \TrackUp{\wml{0},\z}\;
+ \ap $\leftarrow$ \TrackUp{\wml{$0$},\a}\;
+ \zp $\leftarrow$ \TrackUp{\wml{$0$},\z}\;
  \tcp{\z-\a = \zp-\ap}
  \offset $\leftarrow$ \Select{\csa,\sz}\;
  \a,\z $\leftarrow$ \GetRange{\wml{\sz},\left-\offset~$+$~\ap-\leftzero,
  \left-\offset~$+$~\ap-\leftzero,\lz}\;
  \ja,\jz $\leftarrow$ \GetJCodes{\lz,\sz,\ta,\tz}\;
  \Return{\GetCount{\wmj,\offset~+~\a,\offset~+~\z,\ja,\jz}}\;
+ }
  
- \caption{Querying for all features on \ctr}
+ \caption{Querying for all features on \ctr where \DataSty{CSA}, \DataSty{WML} and \DataSty{WMJ} are structures (i), (ii) and (iii), respectively}
 \end{algorithm}
 
 
