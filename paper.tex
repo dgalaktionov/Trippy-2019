@@ -57,7 +57,19 @@ The abstract should briefly summarize the contents of the paper in
 We took the idea from our SPIRE paper and we made it great, using ZSTD compression and other tricks to improve the time complexity of the queries for the TTCTR. Regarding AccumM, it was not possible to improve its speed (as it was already a few memory accesses per query), but we managed to compress it without increasing time complexity. We rock.
 
 \section{State of the Art}
-Review whatever we may have missed from state of the art in prev. papers. Also explain ZSTD and applications. Finally, explain our work-in-progress model for trip representation.
+A nice review of all the R-Tree derivatives: \cite{john2017performance}.
+
+Review whatever we may have missed from state of the art in prev. papers \cite{koide2018cinct} and \cite{ding2018ultraman}. For vehicles we also have this \cite{cai2018vector} and \cite{lovell2018lossless}. On contrast, in \cite{al2017semantictraj} we have a very nice example of a text-based trajectory indexing. I need to figure out what the Geodabs thing \cite{chapuis2018geodabs} is all about.
+
+Cite Adrian and all that crap.
+
+Cite ways of obtaining the data we need, to show that it's possible even though we couldn't get any. You can get a lot of info from smart cards \cite{bhaskar2015passenger}, smart cards + gps \cite{ma2014development}, and even cellphone data \cite{liu2017exploring}. These guys also focus on trajectory reconstruction \cite{tao2014exploring}. These guys \cite{wang2014aggregated} made it so boring that they are probably not worth citing. To the ones who wonder how do we know the final stops, they figured it out in \cite{alsger2016validating}.
+
+If possible, cite applications of our kind of analysis for transportat/ad companies, to show that what we are doing is useful. One example is \cite{tu2018spatial}. Another is \cite{zhang2017targeted}. And by the way, the guys in \cite{weng2018mining} do some analysis with data that has already boarding and alighting stops!
+
+Explain ZSTD and applications.
+
+Finally, explain our work-in-progress model for trip representation, citing SPIRE. Newer models are largely irrelevant.
 
 \subsection{A model for compact trip representation}
 So here goes a picture where we have stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
@@ -214,43 +226,14 @@ propositions, and corollaries are styled the same way.
 Proofs, examples, and remarks have the initial word in italics,
 while the following text appears in normal font.
 \end{proof}
-For citations of references, we prefer the use of square brackets
-and consecutive numbers. Citations using labels or the author/year
-convention are also acceptable. The following bibliography provides
-a sample reference list with entries for journal
-articles~\cite{ref_article1}, an LNCS chapter~\cite{ref_lncs1}, a
-book~\cite{ref_book1}, proceedings without editors~\cite{ref_proc1},
-and a homepage~\cite{ref_url1}. Multiple citations are grouped
-\cite{ref_article1,ref_lncs1,ref_book1},
-\cite{ref_article1,ref_book1,ref_proc1,ref_url1}.
+
 %
 % ---- Bibliography ----
 %
 % BibTeX users should specify bibliography style 'splncs04'.
 % References will then be sorted and formatted in the correct style.
-%
-% \bibliographystyle{splncs04}
-% \bibliography{mybibliography}
-%
-\begin{thebibliography}{8}
-\bibitem{ref_article1}
-Author, F.: Article title. Journal \textbf{2}(5), 99--110 (2016)
 
-\bibitem{ref_lncs1}
-Author, F., Author, S.: Title of a proceedings paper. In: Editor,
-F., Editor, S. (eds.) CONFERENCE 2016, LNCS, vol. 9999, pp. 1--13.
-Springer, Heidelberg (2016). \doi{10.10007/1234567890}
+\bibliographystyle{splncs04}
+\bibliography{refs}
 
-\bibitem{ref_book1}
-Author, F., Author, S., Author, T.: Book title. 2nd edn. Publisher,
-Location (1999)
-
-\bibitem{ref_proc1}
-Author, A.-B.: Contribution title. In: 9th International Proceedings
-on Proceedings, pp. 1--2. Publisher, Location (2010)
-
-\bibitem{ref_url1}
-LNCS Homepage, \url{http://www.springer.com/lncs}. Last accessed 4
-Oct 2017
-\end{thebibliography}
 \end{document}
