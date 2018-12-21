@@ -13,8 +13,8 @@
 % \renewcommand\UrlFont{\color{blue}\rmfamily}
 
 \usepackage{enumerate}
-\usepackage[linesnumbered,commentsnumbered,boxed]{algorithm2e}
 \usepackage{marginnote}
+\usepackage[linesnumbered,commentsnumbered,boxed]{algorithm2e}
 
 \newcommand{\acumm}{T-Matrices} % T is for Tirso!
 \newcommand{\ctr}{NewCTR (name subject to change)\ }
@@ -54,16 +54,16 @@ The abstract should briefly summarize the contents of the paper in
 %
 %
 \section{Introduction}
-We took the idea from our SPIRE paper and we made it great, using ZSTD compression and other tricks to improve the time complexity of the queries for the TTCTR. Regarding AccumM, it was not possible to improve its speed (as it was already a few memory accesses per query), but we managed to compress it without increasing time complexity. We rock.
+We took the idea from our SPIRE paper and we made it great, using ZSTD compression and other tricks to improve the time complexity of the queries for the \ctr. Regarding \acumm, it was not possible to improve its speed (as it was already a few memory accesses per query), but we managed to compress it without increasing time complexity. We rock.
 
-\section{State of the Art}
+\section{Related works}
 A nice review of all the R-Tree derivatives: \cite{john2017performance}.
 
 Review whatever we may have missed from state of the art in prev. papers \cite{koide2018cinct} and \cite{ding2018ultraman}. For vehicles we also have this \cite{cai2018vector} and \cite{lovell2018lossless}. On contrast, in \cite{al2017semantictraj} we have a very nice example of a text-based trajectory indexing. I need to figure out what the Geodabs thing \cite{chapuis2018geodabs} is all about.
 
-Cite Adrian and all that crap.
+Cite Adrian and all that crap. Also send an email to Andrea asking about \cite{rivera2018faster}; I couldn't read it yet as it's paywalled and not available on sci-hub yet!\marginnote{Contact Andrea and Diego!}
 
-Cite ways of obtaining the data we need, to show that it's possible even though we couldn't get any. You can get a lot of info from smart cards \cite{bhaskar2015passenger}, smart cards + gps \cite{ma2014development}, and even cellphone data \cite{liu2017exploring}. These guys also focus on trajectory reconstruction \cite{tao2014exploring}. These guys \cite{wang2014aggregated} made it so boring that they are probably not worth citing. To the ones who wonder how do we know the final stops, they figured it out in \cite{alsger2016validating}.
+Cite ways of obtaining the data we need, to show that it's possible even though we couldn't get any. You can get a lot of info from smart cards \cite{bhaskar2015passenger}, smart cards + gps \cite{ma2014development}, and even cellphone data \cite{liu2017exploring}. These guys also focus on trajectory reconstruction \cite{tao2014exploring}. These guys \cite{wang2014aggregated} made it so boring that they are probably not worth citing, but I'm keeping them here for now because they separate fridays and types of days, even though we don't care much about that anymore. OR DO WE? To the ones who wonder how do we know the final stops, they figured it out in \cite{alsger2016validating}. Basically what we need is called \textbf{trip-chaining}.
 
 If possible, cite applications of our kind of analysis for transportat/ad companies, to show that what we are doing is useful. One example is \cite{tu2018spatial}. Another is \cite{zhang2017targeted}. And by the way, the guys in \cite{weng2018mining} do some analysis with data that has already boarding and alighting stops!
 
