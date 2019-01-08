@@ -71,8 +71,17 @@ Explain ZSTD and applications.
 
 Finally, explain our work-in-progress model for trip representation, citing SPIRE. Newer models are largely irrelevant.
 
+\subsection{Our previous works in trip representation}
+So we speak about IS and SPIRE 2018 version here.
+
 \subsection{A model for compact trip representation}
 So here goes a picture where we have stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
+
+\begin{figure}
+\includegraphics[width=\textwidth]{example_network.eps}
+\caption{An example network for our model, with two lines and five stops}
+\label{fig:example_network}
+\end{figure}
 
 Users can be attached to trips, but we don't care about them yet.
 
@@ -86,7 +95,7 @@ We are interested in solving two kinds of queries:
 \end{enumerate}
 
 \section{Proposed Structures}
-As of today, we are not aware of any indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{seq:rq}. For this reason, we propose two data structures, \acumm and \ctr. The first is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B.
+As of today, we are not aware of any indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{seq:rq}. For this reason, we propose two data structures, \acumm~and~\ctr. The first is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B.
 
 \subsection{Common Structures}
 Both \acumm and \ctr need a network representation to be operated, which is represented in the following components:
@@ -120,7 +129,7 @@ All of them stored explicitly except for $initialTime$, which is compressed with
 Tirso please explain what you did. Did you use bitmaps for partial sums? Matrices? Any other trick from inverted lists? Also explain how queries are solved again, in detail.
 
 \subsection{\ctr}
-A user trip can be represented by the stops where the user gets on the transportation system, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user got off, which line and journey will logically match the line and journey of the last get-on stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user\marginnote{[CITATION NEEDED]}.
+A user trip can be represented by the stops from the transportation system boarded by a user, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user has alighted, which line and journey will logically match the line and journey of the last boarding stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user\marginnote{[CITATION NEEDED]}.
 
 We use three complementary structures to represent each component of the sequence:
 \begin{enumerate}[(i)]
@@ -128,6 +137,12 @@ We use three complementary structures to represent each component of the sequenc
     \item lines WM "forest"
     \item jcodes WM
 \end{enumerate}
+
+\begin{figure}
+\includegraphics[width=\textwidth]{example_trips.eps}
+\caption{An example of five trips represented on \ctr~(WIP)}
+\label{fig:example_ctr}
+\end{figure}
 
 This construction allows us to answer from x to y with just (i).
 
