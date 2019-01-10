@@ -87,11 +87,11 @@ Users can be attached to trips, but we don't care about them yet.
 
 \section{Relevant queries}
 \label{seq:rq}
-We are interested in solving two kinds of queries:
+In the context of public transportation networks, we are interested in solving two kinds of queries:
 
 \begin{enumerate}[A)]
-    \item Aggregation of passengers
-    \item Movement patterns
+    \item Aggregation of passengers, asking for the gross number of users that boarded or alighted within an area and a time window. Furthermore, it can be also interesting to obtain the average load of a bus or a train between any two stops from its line.
+    \item Movement patterns, or queries that focus on the sequence of trip stages. Examples of such queries are the number of times a stop was used to switch lines or the number of trips that started on a stop with another specific stop as the final destination.
 \end{enumerate}
 
 \section{Proposed Structures}
@@ -129,13 +129,15 @@ All of them stored explicitly except for $initialTime$, which is compressed with
 Tirso please explain what you did. Did you use bitmaps for partial sums? Matrices? Any other trick from inverted lists? Also explain how queries are solved again, in detail.
 
 \subsection{\ctr}
-A user trip can be represented by the stops from the transportation system boarded by a user, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user has alighted, which line and journey will logically match the line and journey of the last boarding stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user\marginnote{[CITATION NEEDED]}.
+A user trip can be represented by the stops from the transportation system that were boarded by a user, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. These triplets describe a trip in a consecutive fashion, on the same order as the stops were boarded. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user has alighted, which line and journey will logically match the line and journey of the last boarding stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user\marginnote{[CITATION NEEDED]}.
 
-We use three complementary structures to represent each component of the sequence:
+\ctr~is built first by sorting all trips. If we consider that a trip is composed by $n$ of the $<s_i,l_i,j_i>,~1\leq i\leq n$ triplets previously described, where the first triplet corresponds to the first boarded stop and the last triplet corresponds to the last alighted stop (final destination), then the collection of trips is sorted by the key $s_1,s_n,l_1,j_1$. That is, trips are initially sorted by the first boarded stop identifier. If these are equal, they are then sorted by their last stop identifier, analogously followed by the line identifier and journey code of the first stop. Figure~\ref{fig:example_ctr} displays an example of a correct sorting of trips.
+
+We use three complementary structures to represent each component of the sequence, as shown in Figure~\ref{fig:example_ctr}:
 \begin{enumerate}[(i)]
-    \item CSA with special and circular $\$$
-    \item lines WM "forest"
-    \item jcodes WM
+    \item An adapted Compressed Suffix Array (CSA) over the stop identifiers of all trips, concatenated into a string with additional terminator symbols $\$$ appended at the end of each trip. While in the final CSA we assign these $\$$ a lexicographical value of 0 (thus smaller than any stop identifier), we assign them different values during the construction of the suffix array (A) to ensure that the entries for $\$$ in A maintain the same order as in the original text. Finally, we make a modification on $\Psi$ to make the entries of each $\$$ point to the start of its own trip instead of the next one. These two modifications are proven necessary for our implemented queries, at the expense of losing some of the properties of a classic CSA.
+    \item Aligned to the entries of (i) there is a Wavelet Matrix (WM) for the line identifiers of each stop. Aligned to the $\$$ section we duplicate the starting lines of each trip. As a trivial optimization, we build a separate WM for every stop, allowing us to save space due to the fact that a single stop does not usually belong to many lines, thus the average height of these WM is no larger (and usually smaller) than the height of a single WM.
+    \item A WM of jcodes aligned to the leaves of (ii). Note that this makes this structure dependant on (ii), which is coherent with the fact that journey codes themselves are relative to the line identifier.
 \end{enumerate}
 
 \begin{figure}
