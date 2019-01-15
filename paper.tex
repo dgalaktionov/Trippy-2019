@@ -15,6 +15,7 @@
 \usepackage{enumerate}
 \usepackage{marginnote}
 \usepackage[linesnumbered,commentsnumbered,boxed]{algorithm2e}
+\usepackage{amsmath}
 
 \newcommand{\acumm}{T-Matrices} % T is for Tirso!
 \newcommand{\ctr}{NewCTR (name subject to change)\ }
@@ -73,6 +74,13 @@ Finally, explain our work-in-progress model for trip representation, citing SPIR
 
 \subsection{Our previous works in trip representation}
 So we speak about IS and SPIRE 2018 version here.
+
+\begin{figure}
+%\centering
+\includegraphics[width=\textwidth]{NetworkER.pdf}
+\caption{An (updated) ER diagram representing the work-in-progress model for user trips in public transportation}
+\label{fig:er}
+\end{figure}
 
 \subsection{A model for compact trip representation}
 So here goes a picture where we have stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
