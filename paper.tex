@@ -150,7 +150,7 @@ We use three complementary structures to represent each component of the sequenc
 
 \begin{figure}[hbt!]
 \includegraphics[width=\textwidth]{example_trips.eps}
-\caption{An example of five trips represented on \ctr~(NEEDS TO BE CORRECTED TO BE COHERENT WITH THE PSEUDOCODE THAT ASSUMES WE IMPLEMENTED THE OPTIMIZATION)}
+\caption{An example of five trips represented on \ctr~(with the optimizations for (ii) and (iii))}
 \label{fig:example_ctr}
 \end{figure}
 
@@ -162,7 +162,7 @@ And finally we can restrict times by finding out the right jcodes and filtering 
 
 Theoretically we can answer anything. It's a representation, after all...
 
-\begin{algorithm}[H]
+\begin{algorithm}[hbt!]
 \SetKwData{la}{$l_a$}\SetKwData{lz}{$l_z$}\SetKwData{sa}{s$_a$}\SetKwData{sz}{s$_z$}\SetKwData{ta}{t$_a$}\SetKwData{tz}{t$_z$}\SetKwData{pattern}{pattern}\SetKwData{left}{left}\SetKwData{right}{right}\SetKwData{csa}{CSA}\SetKwData{wmj}{WMJ}\SetKwData{leftzero}{left$_0$}\SetKwData{rightzero}{right$_0$}\SetKwData{a}{a}\SetKwData{z}{z}\SetKwData{ja}{j$_a$}\SetKwData{jz}{j$_z$}\SetKwData{n}{n}\SetKwData{ap}{a'}\SetKwData{zp}{z'}\SetKwData{offset}{offset}
  \SetKwFunction{GetRange}{GetRange}\SetKwFunction{GetJCodes}{GetJCodes}\SetKwFunction{GetCount}{GetCount}\SetKwFunction{GetPsi}{$\Psi$}\SetKwFunction{GetRangeSpecial}{GetRange$^*$}\SetKwFunction{wml}{WML}\SetKwFunction{TrackUp}{TrackUp}\SetKwFunction{Select}{Select}\SetKwFunction{fxy}{FromXtoY\_full}
  \SetKwProg{Fn}{Function}{\string:}{}
