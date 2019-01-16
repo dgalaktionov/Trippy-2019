@@ -75,15 +75,15 @@ Finally, explain our work-in-progress model for trip representation, citing SPIR
 \subsection{Our previous works in trip representation}
 So we speak about IS and SPIRE 2018 version here.
 
+\subsection{A model for compact trip representation}
+So here goes a picture where we have stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
+
 \begin{figure}
 %\centering
 \includegraphics[width=\textwidth]{NetworkER.pdf}
 \caption{An (updated) ER diagram representing the work-in-progress model for user trips in public transportation}
 \label{fig:er}
 \end{figure}
-
-\subsection{A model for compact trip representation}
-So here goes a picture where we have stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
 
 \begin{figure}
 \includegraphics[width=\textwidth]{example_network.eps}
@@ -131,6 +131,7 @@ All of them stored explicitly except for $initialTime$, which is compressed with
  }
  
  \caption{Obtaining the codes of the journeys from the line \l that should arrive to the stop \s within the time range given by \ta and \tz}
+ \label{alg:jcodes}
 \end{algorithm}
 
 \subsection{\acumm}
@@ -150,9 +151,40 @@ We use three complementary structures to represent each component of the sequenc
 
 \begin{figure}[hbt!]
 \includegraphics[width=\textwidth]{example_trips.eps}
-\caption{An example of five trips represented on \ctr~(with the optimizations for (ii) and (iii))}
+\caption{An example of five trips represented on \ctr with the optimizations for (ii) and (iii)}
 \label{fig:example_ctr}
 \end{figure}
+
+As \ctr is a complete representation of the collection of trips, we are able to extract any trip using the structures described. \marginpar{The idea here is that explaining how to extract will help understand the more complex FromXtoY query later} The algorithm to extract a trip is shown in the Algorithm~\ref{alg:extract}, where \FuncSty{Rank} and \FuncSty{Select} operate over the bitvector $D$ from (i), \FuncSty{WML}{($s_a$)} is the WM corresponding to the stop \DataSty{$s_a$} in the optimized version of (ii) and \FuncSty{TrackDown} returns the leaf index of a WM given a root index. In a practical implementation, it is not needed to access (ii) and (iii) for the line identifier and jcode of the last stop of the trip, as they will always match the ones from the previous ones.
+
+\begin{algorithm}[hbt!]
+\SetKwData{la}{$l_a$}\SetKwData{lz}{$l_z$}\SetKwData{sa}{s$_a$}\SetKwData{sz}{s$_z$}\SetKwData{ta}{t$_a$}\SetKwData{tz}{t$_z$}\SetKwData{pattern}{pattern}\SetKwData{left}{left}\SetKwData{right}{right}\SetKwData{csa}{CSA}\SetKwData{wmj}{WMJ}\SetKwData{leftzero}{left$_0$}\SetKwData{rightzero}{right$_0$}\SetKwData{a}{a}\SetKwData{z}{z}\SetKwData{ja}{j$_a$}\SetKwData{jz}{j$_z$}\SetKwData{n}{n}\SetKwData{ap}{a'}\SetKwData{zp}{z'}\SetKwData{offset}{offset}\SetKwData{i}{i}\SetKwData{trip}{trip}
+ \SetKwFunction{GetRange}{GetRange}\SetKwFunction{GetJCodes}{GetJCodes}\SetKwFunction{GetCount}{GetCount}\SetKwFunction{GetPsi}{$\Psi$}\SetKwFunction{GetRangeSpecial}{GetRange$^*$}\SetKwFunction{wml}{WML}\SetKwFunction{TrackUp}{TrackUp}\SetKwFunction{Select}{Select}\SetKwFunction{fxy}{FromXtoY\_full}\SetKwFunction{extract}{Extract\_trip}\SetKwFunction{access}{Access}\SetKwFunction{rank}{Rank}\SetKwFunction{TrackDown}{TrackDown}
+ \SetKwProg{Fn}{Function}{\string:}{}
+ 
+ \Fn{\extract{\i}}{
+ \KwData{trip number \i}
+ \KwResult{Sequence of tuples $<s,l,j>$ that compose the trip}
+ \BlankLine
+ \trip $\leftarrow$ []\;
+ \a  $\leftarrow$ \GetPsi{\csa, \i}\;
+ \sa $\leftarrow$ \rank{\csa,\a}\;
+ \BlankLine
+ \While{\sa $\neq$ 0}{
+    \z $\leftarrow$ \Select{\csa,\sa}\;
+    \la $\leftarrow$ \access{\wml{\sa}, \a-\z}\;
+    \ja $\leftarrow$ \access{\wmj, \TrackDown{\wml{\sa}, \a-\z}+\z}\;
+    append $<\sa,\la,\ja>$ to \trip\;
+    \a  $\leftarrow$ \GetPsi{\csa, \i}\;
+    \sa $\leftarrow$ \rank{\csa,\a}\;
+ }
+ \BlankLine
+ \Return{\trip}\;
+ }
+ 
+ \caption{Extracting the trip \DataSty{i} from \ctr where \FuncSty{CSA}, \FuncSty{WML} and \FuncSty{WMJ} are structures (i), (ii) and (iii), respectively}
+ \label{alg:extract}
+\end{algorithm}
 
 This construction allows us to answer from x to y with just (i).
 
@@ -189,7 +221,8 @@ Theoretically we can answer anything. It's a representation, after all...
  \Return{\GetCount{\wmj,\offset~+~\a,\offset~+~\z,\ja,\jz}}\;
  }
  
- \caption{Querying for all features on \ctr where \DataSty{CSA}, \DataSty{WML} and \DataSty{WMJ} are structures (i), (ii) and (iii), respectively}
+ \caption{Querying for all features on \ctr where \FuncSty{CSA}, \FuncSty{WML} and \FuncSty{WMJ} are structures (i), (ii) and (iii), respectively}
+ \label{alg:xy}
 \end{algorithm}
 
 
