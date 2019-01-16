@@ -151,11 +151,11 @@ We use three complementary structures to represent each component of the sequenc
 
 \begin{figure}[hbt!]
 \includegraphics[width=\textwidth]{example_trips.eps}
-\caption{An example of five trips represented on \ctr with the optimizations for (ii) and (iii)}
+\caption{An example of five trips represented on \ctr with the optimizations for (ii) and (iii), and sections for each stop delimited by dotted lines}
 \label{fig:example_ctr}
 \end{figure}
 
-As \ctr is a complete representation of the collection of trips, we are able to extract any trip using the structures described. \marginpar{The idea here is that explaining how to extract will help understand the more complex FromXtoY query later} The algorithm to extract a trip is shown in the Algorithm~\ref{alg:extract}, where \FuncSty{Rank} and \FuncSty{Select} operate over the bitvector $D$ from (i), \FuncSty{WML}{($s_a$)} is the WM corresponding to the stop \DataSty{$s_a$} in the optimized version of (ii) and \FuncSty{TrackDown} returns the leaf index of a WM given a root index. In a practical implementation, it is not needed to access (ii) and (iii) for the line identifier and jcode of the last stop of the trip, as they will always match the ones from the previous ones.
+As \ctr is a complete representation of the collection of trips, we are able to extract any trip using the structures described. \marginpar{The idea here is that explaining how to extract will help understand the more complex FromXtoY query later} The algorithm to extract a trip is shown in the Algorithm~\ref{alg:extract}, where \FuncSty{Rank} and \FuncSty{Select} operate over the bitvector $D$ from (i), \FuncSty{WML}{(s$_a$)} is the WM corresponding to the stop \DataSty{s$_a$} in the optimized version of (ii) and \FuncSty{TrackDown} returns the leaf index of a WM given a root index. In a practical implementation, it is not needed to access (ii) and (iii) for the line identifier and jcode of the last stop of the trip, as they will always match the ones from the previous ones.
 
 \begin{algorithm}[hbt!]
 \SetKwData{la}{$l_a$}\SetKwData{lz}{$l_z$}\SetKwData{sa}{s$_a$}\SetKwData{sz}{s$_z$}\SetKwData{ta}{t$_a$}\SetKwData{tz}{t$_z$}\SetKwData{pattern}{pattern}\SetKwData{left}{left}\SetKwData{right}{right}\SetKwData{csa}{CSA}\SetKwData{wmj}{WMJ}\SetKwData{leftzero}{left$_0$}\SetKwData{rightzero}{right$_0$}\SetKwData{a}{a}\SetKwData{z}{z}\SetKwData{ja}{j$_a$}\SetKwData{jz}{j$_z$}\SetKwData{n}{n}\SetKwData{ap}{a'}\SetKwData{zp}{z'}\SetKwData{offset}{offset}\SetKwData{i}{i}\SetKwData{trip}{trip}
@@ -186,11 +186,32 @@ As \ctr is a complete representation of the collection of trips, we are able to 
  \label{alg:extract}
 \end{algorithm}
 
-This construction allows us to answer from x to y with just (i).
+A more complex query that we can solve with \ctr is ``number of trips that started from a stop \DataSty{s$_a$} and ended at a stop \DataSty{s$_z$}'', which can be further restricted to specific starting and ending lines and a time window. The pseudocode for the full version of such query can be found at the Algorithm~\ref{alg:xy}. This algorithm relies heavily on the abstract function \FuncSty{GetRange}, which when applied to a CSA, delimits the range of entries of $\Psi$ that match a queried string pattern, while on a WM it reports the range in the last level of a WM corresponding to the entries of a queried symbol within a range in the encoded sequence (equivalent to two \FuncSty{TrackDown} operations on the first and last occurrence of the queried symbol, but much more time efficient)\marginpar{Briefly describe WM in previous works and refer to that section for complexity of these queries}.
 
-Then we can use (ii) to restrict lines.
+We will now proceed to explain the Algorithm~\ref{alg:xy} line by line:
+\begin{itemize}
+    \item In \textbf{lines 2-3}, we query the \FuncSty{CSA} in (i) for the pattern consisting of the destination stop \DataSty{s$_z$}, followed by a 0 (the code for the $\$$ symbol) and finally the origin stop \DataSty{s$_a$}. This results in a range of entries within the section of \DataSty{s$_z$} that belong to our queried trips, because the trips were made circular in $\Psi$, so each $\$$ points to the beginning of its own trip. If we were not interested in restricting lines nor time, the function would end here, returning \DataSty{right}-\DataSty{left}.
+    
+    \item In \textbf{lines 4-6} we obtain the corresponding range in the section of $\$$ by accessing \FuncSty{$\Psi$}. Note that because of how the sorting of the $\$$ symbols was altered during the construction of the suffix array, these two ranges are equal in size, as the comment in line 6 points out.
+    
+    \item In \textbf{line 7} we query (ii) in the $\$$ section, within the range previously obtained, for the queried starting line \DataSty{l$_a$}, obtaining the range of its occurences in the last level, delimited by \DataSty{a} and \DataSty{z}. Note that if the \ctr was constructed without the optimization that separates (ii) in sections, this line would be exactly the same, save for the query being on a \DataSty{WML} that would encode the whole sequence of lines instead of just the \DataSty{WML}{(0)} for $\$$.
+    
+    \item In \textbf{line 8} we obtain the range of jcodes for the journeys from the line \DataSty{l$_a$} that would pass through the stop \DataSty{s$_a$} within the time window delimited by \DataSty{t$_a$} and \DataSty{t$_z$}, using the function \FuncSty{GetJCodes} from Algorithm~\ref{alg:jcodes}.
+    
+    \item In \textbf{line 9} we operate over a range of (iii) that encodes a non-decreasing sequence of jcodes, given that within the same origin stop, final stop and starting line, the $\$$ were sorted by the starting journey code of their trips. This allows us to use a specially modified version of \FuncSty{GetRange} that is able to return the range of indexes on the first level of the WM instead of the last one. This is equivalent to finding the lower and upper bounds for the range \DataSty{j$_a$}$..$\DataSty{j$_z$} via binary searches in \FuncSty{WMJ} from \DataSty{a} to \DataSty{z}, but much more efficient.
+    
+    \item In \textbf{lines 10-12} we use the \FuncSty{TrackUp} operation, which is the inverse of \FuncSty{TrackDown}: it returns the root index given a leaf index of a WM. In this case, as the \FuncSty{a} and \FuncSty{z} we obtained in the previous step are also indexes in the last level of the lines WM, we use \FuncSty{TrackUp} to translate that range to indexes to the root of the (ii) and therefore to the entries of (i) as well. Note that this is a range inside the $\$$ section for trips with the same origin stop, final stop and starting line that includes all the trips for jcodes that span from \DataSty{j$_a$} to \DataSty{j$_z$}. The properties of (i) also ensure that this range maintains the same size after translation and it can also be directly translated to a range in the \DataSty{s$_z$}.
+    
+    \item In \textbf{line 13} we obtain the starting index of the section for the stop \DataSty{s$_z$} with a \FuncSty{Select} operation over the bitvector D from (i). This is necessary for operating on (ii) and (iii) to restrict the line and journeys for the final stop.
+    
+    \item In \textbf{line 14} the range \DataSty{a'}$..$\DataSty{z'} is trivially translated to the section for \DataSty{s$_z$} where we query (ii) to obtain the subrange for the line \DataSty{l$_z$}. Remember that \DataSty{WML}{(s$_z$)} representes only the lines for \DataSty{s$_z$}, therefore both the translated indexes and the resulting subrange indexes are relative and must be adjusted by \DataSty{offset}. This would have not been necessary if the optimization was not implemented, and absolute indexes would have been used.
+    
+    \item In \textbf{line 15} we obtain the jcode range analagously to line 8, but this time for \DataSty{l$_z$} and \DataSty{s$_z$}.
+    
+    \item In \textbf{line 16} we return the number of entries of (iii) between \DataSty{j$_a$} and \DataSty{j$_z$} within our final subrange. The function \FuncSty{GetCount} does not report any range boundaries as \FuncSty{GetRange} does, but simply returns the number of occurences. Of course, the time complexity of this operation is still proportional to the height of the WM even though the matching entries can be scattered (not delimiting a contiguos range).
+\end{itemize}
 
-And finally we can restrict times by finding out the right jcodes and filtering through (iii).
+Explain variations with less restricted queries.
 
 Theoretically we can answer anything. It's a representation, after all...
 
