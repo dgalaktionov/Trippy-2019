@@ -142,18 +142,18 @@ A user trip can be represented by the stops from the transportation system that 
 
 \ctr~is built first by sorting all trips. If we consider that a trip is composed by $n$ of the $<s_i,l_i,j_i>,~1\leq i\leq n$ triplets previously described, where the first triplet corresponds to the first boarded stop and the last triplet corresponds to the last alighted stop (final destination), then the collection of trips is sorted by the key $s_1,s_n,l_1,j_1$. That is, trips are initially sorted by the first boarded stop identifier. If these are equal, they are then sorted by their last stop identifier, analogously followed by the line identifier and journey code of the first stop. Figure~\ref{fig:example_ctr} displays an example of a correct sorting of trips.
 
+\begin{figure}[hbt!]
+\includegraphics[width=\textwidth]{example_trips.eps}
+\caption{An example of five trips represented on \ctr with the optimizations for (ii) and (iii), and sections for each stop delimited by dotted lines}
+\label{fig:example_ctr}
+\end{figure}
+
 We use three complementary structures to represent each component of the sequence, as shown in Figure~\ref{fig:example_ctr}:
 \begin{enumerate}[(i)]
     \item An adapted Compressed Suffix Array (CSA) over the stop identifiers of all trips, concatenated into a string with additional terminator symbols $\$$ appended at the end of each trip. While in the final CSA we assign these $\$$ a lexicographical value of 0 (thus smaller than any stop identifier), we assign them different values during the construction of the suffix array (A) to ensure that the entries for $\$$ in A maintain the same order as in the original text. Finally, we make a modification on $\Psi$ to make the entries of each $\$$ point to the start of its own trip instead of the next one. These two modifications are proven necessary for our implemented queries, at the expense of losing some of the properties of a classic CSA.
     \item Aligned to the entries of (i) there is a Wavelet Matrix (WM) for the line identifiers of each stop. Aligned to the $\$$ section we duplicate the starting lines of each trip. As a trivial optimization, we build a separate WM for every stop, allowing us to save space due to the fact that a single stop does not usually belong to many lines, thus the average height of these WM is no larger (and usually smaller) than the height of a single WM.
     \item A WM of jcodes aligned to the leaves of (ii). Note that this makes this structure dependant on (ii), which is coherent with the fact that journey codes themselves are relative to the line identifier. In case (ii) implements the optimization described, the entries of the WM must also be rearranged to match the delimited stops.
 \end{enumerate}
-
-\begin{figure}[hbt!]
-\includegraphics[width=\textwidth]{example_trips.eps}
-\caption{An example of five trips represented on \ctr with the optimizations for (ii) and (iii), and sections for each stop delimited by dotted lines}
-\label{fig:example_ctr}
-\end{figure}
 
 As \ctr is a complete representation of the collection of trips, we are able to extract any trip using the structures described. \marginpar{The idea here is that explaining how to extract will help understand the more complex FromXtoY query later} The algorithm to extract a trip is shown in the Algorithm~\ref{alg:extract}, where \FuncSty{Rank} and \FuncSty{Select} operate over the bitvector $D$ from (i), \FuncSty{WML}{(s$_a$)} is the WM corresponding to the stop \DataSty{s$_a$} in the optimized version of (ii) and \FuncSty{TrackDown} returns the leaf index of a WM given a root index. In a practical implementation, it is not needed to access (ii) and (iii) for the line identifier and jcode of the last stop of the trip, as they will always match the ones from the previous ones.
 
@@ -188,6 +188,37 @@ As \ctr is a complete representation of the collection of trips, we are able to 
 
 A more complex query that we can solve with \ctr is ``number of trips that started from a stop \DataSty{s$_a$} and ended at a stop \DataSty{s$_z$}'', which can be further restricted to specific starting and ending lines and a time window. The pseudocode for the full version of such query can be found at the Algorithm~\ref{alg:xy}. This algorithm relies heavily on the abstract function \FuncSty{GetRange}, which when applied to a CSA, delimits the range of entries of $\Psi$ that match a queried string pattern, while on a WM it reports the range in the last level of a WM corresponding to the entries of a queried symbol within a range in the encoded sequence (equivalent to two \FuncSty{TrackDown} operations on the first and last occurrence of the queried symbol, but much more time efficient)\marginpar{Briefly describe WM in previous works and refer to that section for complexity of these queries}.
 
+\begin{algorithm}[hbt!]
+\SetKwData{la}{$l_a$}\SetKwData{lz}{$l_z$}\SetKwData{sa}{s$_a$}\SetKwData{sz}{s$_z$}\SetKwData{ta}{t$_a$}\SetKwData{tz}{t$_z$}\SetKwData{pattern}{pattern}\SetKwData{left}{left}\SetKwData{right}{right}\SetKwData{csa}{CSA}\SetKwData{wmj}{WMJ}\SetKwData{leftzero}{left$_0$}\SetKwData{rightzero}{right$_0$}\SetKwData{a}{a}\SetKwData{z}{z}\SetKwData{ja}{j$_a$}\SetKwData{jz}{j$_z$}\SetKwData{n}{n}\SetKwData{ap}{a'}\SetKwData{zp}{z'}\SetKwData{offset}{offset}
+ \SetKwFunction{GetRange}{GetRange}\SetKwFunction{GetJCodes}{GetJCodes}\SetKwFunction{GetCount}{GetCount}\SetKwFunction{GetPsi}{$\Psi$}\SetKwFunction{GetRangeSpecial}{GetRange$^*$}\SetKwFunction{wml}{WML}\SetKwFunction{TrackUp}{TrackUp}\SetKwFunction{Select}{Select}\SetKwFunction{fxy}{FromXtoY\_full}
+ \SetKwProg{Fn}{Function}{\string:}{}
+ 
+ \Fn{\fxy{\la,\lz,\sa,\sz,\ta,\tz,\n}}{
+ \KwData{lines \la,\lz, stops \sa,\sz, times \ta,\tz and length of the sequence \n}
+ \KwResult{Number of occurences}
+ \BlankLine
+ \pattern $\leftarrow \{\sz,0,\sa\}$\;
+ \left,\right $\leftarrow$ \GetRange{\csa, $0$, \n, \pattern}\;
+ \leftzero $\leftarrow$ \GetPsi{\csa, \left}\;
+ \rightzero $\leftarrow$ \GetPsi{\csa, \right}\;
+ \tcp{\right-\left = \rightzero-\leftzero}
+ \a,\z $\leftarrow$ \GetRange{\wml{$0$},\leftzero,\rightzero,\la}\;
+ \ja,\jz $\leftarrow$ \GetJCodes{\la,\sa,\ta,\tz}\;
+ \a,\z $\leftarrow$ \GetRangeSpecial{\wmj,\a,\z,\ja,\jz}\;
+ \ap $\leftarrow$ \TrackUp{\wml{$0$},\a}\;
+ \zp $\leftarrow$ \TrackUp{\wml{$0$},\z}\;
+ \tcp{\z-\a = \zp-\ap}
+ \offset $\leftarrow$ \Select{\csa,\sz}\;
+ \a,\z $\leftarrow$ \GetRange{\wml{\sz},\left-\offset~$+$~\ap-\leftzero,
+ \left-\offset~$+$~\zp-\leftzero,\lz}\;
+ \ja,\jz $\leftarrow$ \GetJCodes{\lz,\sz,\ta,\tz}\;
+ \Return{\GetCount{\wmj,\offset~+~\a,\offset~+~\z,\ja,\jz}}\;
+ }
+ 
+ \caption{Querying for all features on \ctr where \FuncSty{CSA}, \FuncSty{WML} and \FuncSty{WMJ} are structures (i), (ii) and (iii), respectively}
+ \label{alg:xy}
+\end{algorithm}
+
 We will now proceed to explain the Algorithm~\ref{alg:xy} line by line:
 \begin{itemize}
     \item In \textbf{lines 2-3}, we query the \FuncSty{CSA} in (i) for the pattern consisting of the destination stop \DataSty{s$_z$}, followed by a 0 (the code for the $\$$ symbol) and finally the origin stop \DataSty{s$_a$}. This results in a range of entries within the section of \DataSty{s$_z$} that belong to our queried trips, because the trips were made circular in $\Psi$, so each $\$$ points to the beginning of its own trip. If we were not interested in restricting lines nor time, the function would end here, returning \DataSty{right}-\DataSty{left}.
@@ -211,43 +242,12 @@ We will now proceed to explain the Algorithm~\ref{alg:xy} line by line:
     \item In \textbf{line 16} we return the number of entries of (iii) between \DataSty{j$_a$} and \DataSty{j$_z$} within our final subrange. The function \FuncSty{GetCount} does not report any range boundaries as \FuncSty{GetRange} does, but simply returns the number of occurences. Of course, the time complexity of this operation is still proportional to the height of the WM even though the matching entries can be scattered (not delimiting a contiguos range).
 \end{itemize}
 
-Explain variations with less restricted queries.
+It is trivial to reuse the Algorithm~\ref{alg:xy} to answer queries with less constrains. For example, if we were only interested in restricting the starting line, we could return \DataSty{z}-\DataSty{a} after line 7. Or if we only wanted to restrict the ending line and time, we can do it by skipping the lines 4-12, and using directly \FuncSty{GetRange}{(\FuncSty{WML}{(s$_z$)},left-offset,right-offset,l$_z$)} in line 14. The complexity would increase if we restricted by a time window but not by lines, as would need to iterate through all possible lines for \DataSty{s$_a$} and \DataSty{s$_z$} to obtain the jcodes for each line and perform these operations on (ii) and (iii). Fortunately, the number of lines that a single stop can belong to tends to be rather small in practice, thus with a careful implementation that avoids repeating computation the performance of such query can remain competitive, as will be shown later in Section~\ref{sec:exp}. Finally, to obtain only the trips that started on a given stop we would simply need to set \DataSty{pattern} to $\{0,s_a\}$ in line 2, or alternatively to $\{s_z,0\}$ for the final stop, and skipping the operations on the sections of \DataSty{s$_z$} or $\$$, respectively.
 
-Theoretically we can answer anything. It's a representation, after all...
-
-\begin{algorithm}[hbt!]
-\SetKwData{la}{$l_a$}\SetKwData{lz}{$l_z$}\SetKwData{sa}{s$_a$}\SetKwData{sz}{s$_z$}\SetKwData{ta}{t$_a$}\SetKwData{tz}{t$_z$}\SetKwData{pattern}{pattern}\SetKwData{left}{left}\SetKwData{right}{right}\SetKwData{csa}{CSA}\SetKwData{wmj}{WMJ}\SetKwData{leftzero}{left$_0$}\SetKwData{rightzero}{right$_0$}\SetKwData{a}{a}\SetKwData{z}{z}\SetKwData{ja}{j$_a$}\SetKwData{jz}{j$_z$}\SetKwData{n}{n}\SetKwData{ap}{a'}\SetKwData{zp}{z'}\SetKwData{offset}{offset}
- \SetKwFunction{GetRange}{GetRange}\SetKwFunction{GetJCodes}{GetJCodes}\SetKwFunction{GetCount}{GetCount}\SetKwFunction{GetPsi}{$\Psi$}\SetKwFunction{GetRangeSpecial}{GetRange$^*$}\SetKwFunction{wml}{WML}\SetKwFunction{TrackUp}{TrackUp}\SetKwFunction{Select}{Select}\SetKwFunction{fxy}{FromXtoY\_full}
- \SetKwProg{Fn}{Function}{\string:}{}
- 
- \Fn{\fxy{\la,\lz,\sa,\sz,\ta,\tz,\n}}{
- \KwData{lines \la,\lz, stops \sa,\sz, times \ta,\tz and length of the sequence \n}
- \KwResult{Number of occurences}
- \BlankLine
- \pattern $\leftarrow \{\sz,0,\sa\}$\;
- \left,\right $\leftarrow$ \GetRange{\csa, $0$, \n, \pattern}\;
- \leftzero $\leftarrow$ \GetPsi{\csa, \left}\;
- \rightzero $\leftarrow$ \GetPsi{\csa, \right}\;
- \tcp{\right-\left = \rightzero-\leftzero}
- \a,\z $\leftarrow$ \GetRange{\wml{$0$},\leftzero,\rightzero,\la}\;
- \ja,\jz $\leftarrow$ \GetJCodes{\la,\sa,\ta,\tz}\;
- \a,\z $\leftarrow$ \GetRangeSpecial{\wmj,\a,\z,\ja,\jz}\;
- \ap $\leftarrow$ \TrackUp{\wml{$0$},\a}\;
- \zp $\leftarrow$ \TrackUp{\wml{$0$},\z}\;
- \tcp{\z-\a = \zp-\ap}
- \offset $\leftarrow$ \Select{\csa,\sz}\;
- \a,\z $\leftarrow$ \GetRange{\wml{\sz},\left-\offset~$+$~\ap-\leftzero,
- \left-\offset~$+$~\ap-\leftzero,\lz}\;
- \ja,\jz $\leftarrow$ \GetJCodes{\lz,\sz,\ta,\tz}\;
- \Return{\GetCount{\wmj,\offset~+~\a,\offset~+~\z,\ja,\jz}}\;
- }
- 
- \caption{Querying for all features on \ctr where \FuncSty{CSA}, \FuncSty{WML} and \FuncSty{WMJ} are structures (i), (ii) and (iii), respectively}
- \label{alg:xy}
-\end{algorithm}
-
+Of course, \ctr can also be used to efficiently obtain other interesting information about trips, such as the top k most boarded stops, as shown in \cite{brisaboa2018compact}, with the additional possibility of differentiating stops that are only used to switch lines in \ctr. However, there is no known way of using this structure to obtain other kinds of information efficiently (e.g. the number of passengers in a journey between two stops).
 
 \section{Experiments}
+\label{sec:exp}
 For space, I propose to compare with our previous structures and with a plain representation using bits per symbol (bps). Otherwise, the baseline we select for our $\%$ can be misleading.
 
 For time, we will compare against SPIRE 2018, and maybe, IF WE HAVE TIME, with a plain postgresql baseline. Experiments will be executed in Compostela2 or whatever we'll have available.
