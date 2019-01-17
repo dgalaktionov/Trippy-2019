@@ -115,7 +115,9 @@ Both \acumm and \ctr need a network representation to be operated, which is repr
     \item $initialTime_i(k)$ is the starting time of the journey $j_k$ for line $l_i$
 \end{itemize}
 
-All of them stored explicitly except for $initialTime$, which is compressed with sampled ZSTD.
+With the exception of $initialTime$, all these structures are small enough to be represented using plain fixed-length integer arrays. In the case of $initialTime$, its size naturally grows with the amount of trips that are indexed, thus there is a motivation to reduce its size, which can be easily achieved with any technique that works on posting lists or sequences of strictly increasing numbers. In our work we used a simplified Vbyte+ANS compression described in \cite{moffat2017ans} using the Zstd library\footnote{https://github.com/facebook/zstd}. In order to facilitate searches and random access, we introduced fixed-length samples on configurable intervals.
+
+An example of these structures interacting together can be found at the Algorithm~\ref{alg:jcodes}, the the function \FuncSty{lower\_bound} is a binary search that returns the index of the first occurrence that is no lesser than the queried value, while \FuncSty{upper\_bound} returns the index of the last no greater occurrence.
 
 \begin{algorithm}[H]
 \SetKwData{l}{$l$}\SetKwData{lz}{l$_z$}\SetKwData{s}{s}\SetKwData{sz}{s$_z$}\SetKwData{ta}{t$_a$}\SetKwData{tz}{t$_z$}\SetKwData{pattern}{pattern}\SetKwData{left}{left}\SetKwData{right}{right}\SetKwData{csa}{CSA}\SetKwData{wmj}{WMJ}\SetKwData{leftzero}{left$_0$}\SetKwData{rightzero}{right$_0$}\SetKwData{i}{i}\SetKwData{z}{z}\SetKwData{ja}{j$_a$}\SetKwData{jz}{j$_z$}\SetKwData{n}{n}\SetKwData{ap}{a'}\SetKwData{zp}{z'}\SetKwData{offset}{offset}
