@@ -17,7 +17,7 @@
 \usepackage[linesnumbered,commentsnumbered,boxed]{algorithm2e}
 \usepackage{amsmath}
 
-\newcommand{\acumm}{T-Matrices} % T is for Tirso!
+\newcommand{\acumm}{T-Matrices} % T is for Total!
 \newcommand{\ctr}{NewCTR (name subject to change)\ }
 
 \begin{document}
@@ -57,7 +57,10 @@ The abstract should briefly summarize the contents of the paper in
 \section{Introduction}
 We took the idea from our SPIRE paper and we made it great, using ZSTD compression and other tricks to improve the time complexity of the queries for the \ctr. Regarding \acumm, it was not possible to improve its speed (as it was already a few memory accesses per query), but we managed to compress it without increasing time complexity. We rock.
 
+If possible, cite applications of our kind of analysis for transportat/ad companies, to show that what we are doing is useful. One example is \cite{tu2018spatial}. Another is \cite{zhang2017targeted}. And by the way, the guys in \cite{weng2018mining} do some analysis with data that has already boarding and alighting stops!
+
 \section{Related works}
+\subsection{Trajectory indexing}
 Many data structures have been proposed to support efficient 
 query capabilities on collections of
 trajectories. We refer to~\cite[Chapter 4]{DBLP:books/sp/PelekisT14} for a comprehensive and
@@ -114,21 +117,18 @@ Using the hash value  for the first and last
 edge on a query path, {\em NETTRA}  determines whether
 the trajectory followed a specific path between these edges.
 
-Review whatever we may have missed from state of the art in prev. papers \cite{koide2018cinct} and \cite{ding2018ultraman}. For vehicles we also have this \cite{cai2018vector} and \cite{lovell2018lossless}. On contrast, in \cite{al2017semantictraj} we have a very nice example of a text-based trajectory indexing. Geodabs is another example of a text-based index that takes the sequence into account using fingerprinting \cite{chapuis2018geodabs}.
+There is a framework based on Apache Spark called Ultraman \cite{ding2018ultraman} that works over partitioned datasets of trajectories to answer range, kNN and aggregation queries. However, PAPER ADRIAN is better, as the former relies on disk access and serialization for most queries. For vehicles we also have this \cite{cai2018vector} and \cite{lovell2018lossless}. On contrast, in \cite{al2017semantictraj} we have a very nice example of a text-based trajectory indexing. Geodabs is another example of a text-based index that takes the sequence into account using fingerprinting \cite{chapuis2018geodabs}.
 
 Apart from \cite{koide2018cinct}, in compact data structures there is PAPER ADRIAN\marginpar{We should wait to see if the Journal gets published soon}, which focuses on intersection queries for trajectories in free space, and  \cite{rivera2018faster}, which introduces two bitvectors to efficiently answer time interval queries.
 
+\subsection{Trajectory data mining}
 Cite ways of obtaining the data we need, to show that it's possible even though we couldn't get any. You can get a lot of info from smart cards \cite{bhaskar2015passenger}, smart cards + gps \cite{ma2014development}, and even cellphone data \cite{liu2017exploring}. These guys also focus on trajectory reconstruction \cite{tao2014exploring}. These guys \cite{wang2014aggregated} made it so boring that they are probably not worth citing, but I'm keeping them here for now because they separate fridays and types of days, even though we don't care much about that anymore. OR DO WE? To the ones who wonder how do we know the final stops, they figured it out in \cite{alsger2016validating}. Basically what we need is called \textbf{trip-chaining}.
 
-If possible, cite applications of our kind of analysis for transportat/ad companies, to show that what we are doing is useful. One example is \cite{tu2018spatial}. Another is \cite{zhang2017targeted}. And by the way, the guys in \cite{weng2018mining} do some analysis with data that has already boarding and alighting stops!
+\subsection{Background structures and algorithms}
+CSA. Brief explanation about WMs here. Explain ZSTD and applications.
 
-Explain ZSTD and applications.
-
-\subsection{Our previous works in trip representation}
-So we speak about IS and SPIRE 2018 version here. Maybe stuff the brief explanation about WMs here too? Or move this and the next subsection to introduction.
-
-\subsection{A model for compact trip representation}
-So here goes a picture where we have stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
+\subsection{Our model for compact trip representation}
+We speak about IS and SPIRE 2018 version here. So here goes a picture where we have stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
 
 \begin{figure}
 %\centering
@@ -189,7 +189,22 @@ An example of these structures interacting together can be found at the Algorith
 \end{algorithm}
 
 \subsection{\acumm}
-Tirso please explain what you did. Did you use bitmaps for partial sums? Matrices? Any other trick from inverted lists? Also explain how queries are solved again, in detail.
+As it has been stated previously in this paper, nowadays it could be relatively simple to gather massive information about user trips in every public transport; however, it is not necessary to store individually each trip. If there are two (or more) commuters sharing the same bus (train/tram/etc), they are also sharing the route, the stops (the time of each stop) and even the network. Therefore, a structure storing the aggregated data of the user trips would be a handy solution to solve (at least) queries of type A presented in section 3.
+
+Thus, we propose the T-Matrix (this is the 3rd name it has), an accumulated solution that involves two-dimensional matrices of integers enabling aggregated queries by row, column, or window/range. In the context of a public trasnportation network, it would by useful to solve flexible line-centered queries; that is, queries that support aggregation by any dimension. Therefore, it could be possible to aggregate either by time-interval (e.g. number of users got on at any stop of the line on 2019/01/02); by stop (e.g. number of commuters that got on a bus at stop S); or by stop and time-interval.
+
+In a naïve representation, it would only be necessary a two-dimensional matrix having stops as columns and journeys as rows, so each cell would have an integer representing the number of passengers that got on the vehicle at a specific stop in a particular time (journey). The main issue with this approach is that for each query it would be necessary to sum integer by integer each cell of the solution; hence, if we are trying to compute how many people got on a bus in several consecutive sotps during a time interval (several consecutive journeys) it would be necessary to sum all the cells within the matrix that match these journeys and stops.
+
+On the other hand, T-Matrix is based on this naive proposal but instead of storing each cell as a simple integer it assigns an accumulated value to each slot, being the top left cell the smaller number and the bottom right position the cumulative value resulting from adding all the previous cells. Despite having larger numbers in almost every slot of the matrix, this approach allows to apply the dynamic programing formula that follows:
+
+$\mathsf{countRange((x_1,y_1),(x_2,y_2))} \leftarrow {M(x_2,y_2)} - {M(x_2,y_1-1)} - {M(x_1-1,y_2)} + {M(x_1-1,y_1-1)}$.
+
+The combination of this operations with our proposed accumulative matrix enables to compute the same two-dimensional (or one-dimensional) queries in constant time O(1), as it is only neccesary to access and sum four cells in all the matrix.
+
+EXAMPLE
+
+One simple way of dealing with the growth of numbers in our cumulative solution is just apply a kind of sampling with differences; in this way, a basic example could be keep the middle column m ← (n s + 1)/2 explicitly, and representing the values in the other columns m±k as the difference with respect to column m.
+
 
 \subsection{\ctr}
 A user trip can be represented by the stops from the transportation system that were boarded by a user, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. These triplets describe a trip in a consecutive fashion, on the same order as the stops were boarded. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user has alighted, which line and journey will logically match the line and journey of the last boarding stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user\marginpar{[CITATION NEEDED]}.
