@@ -59,6 +59,8 @@ We took the idea from our SPIRE paper and we made it great, using ZSTD compressi
 
 If possible, cite applications of our kind of analysis for transportat/ad companies, to show that what we are doing is useful. One example is \cite{tu2018spatial}. Another is \cite{zhang2017targeted}. And by the way, the guys in \cite{weng2018mining} do some analysis with data that has already boarding and alighting stops!
 
+These guys \cite{wang2014aggregated} made it so boring that they are probably not worth citing, but I'm keeping them here for now because they separate fridays and types of days, even though we don't care much about that anymore. OR DO WE?
+
 \section{Related works}
 \subsection{Trajectory indexing}
 Many data structures have been proposed to support efficient 
@@ -122,10 +124,14 @@ There is a framework based on Apache Spark called Ultraman \cite{ding2018ultrama
 Apart from \cite{koide2018cinct}, in compact data structures there is PAPER ADRIAN\marginpar{We should wait to see if the Journal gets published soon}, which focuses on intersection queries for trajectories in free space, and  \cite{rivera2018faster}, which introduces two bitvectors to efficiently answer time interval queries.
 
 \subsection{Trajectory data mining}
-Cite ways of obtaining the data we need, to show that it's possible even though we couldn't get any. You can get a lot of info from smart cards \cite{bhaskar2015passenger}, smart cards + gps \cite{ma2014development}, and even cellphone data \cite{liu2017exploring}. These guys also focus on trajectory reconstruction \cite{tao2014exploring}. These guys \cite{wang2014aggregated} made it so boring that they are probably not worth citing, but I'm keeping them here for now because they separate fridays and types of days, even though we don't care much about that anymore. OR DO WE? To the ones who wonder how do we know the final stops, they figured it out in \cite{alsger2016validating}. Basically what we need is called \textbf{trip-chaining}.
+Currently there are several known techniques that would allow to collect data regarding users' trips over a public transportation network. Numerous works exist where these trajectories are mined from the transactions of smart cards (\cite{bhaskar2015passenger}, \cite{wang2014aggregated}). This can be complemented with information derived from GPS devices, as shown in \cite{ma2014development}. Alternatively, these trajectories may be extracted relying on positioning obtained from cellular networks, as proven by \cite{liu2017exploring}. 
+
+In addition, the authors of \cite{tao2014exploring} have specifically tackled the challenge of reconstructing full trajectories, accounting for trip-chaining, using data obtained from smart cards. Furthermore, in \cite{alsger2016validating} it is also proven that not only the alighting stops, but also the (last) destination stop of a trip can be estimated from boarding data gathered by a smart card, within a reasonable accuracy.
+
+This summarized review proves that, although we were not able to access real data from a public transportation company, such curated information about users' trips can indeed be obtained and used for our proposed representation.
 
 \subsection{Background structures and algorithms}
-CSA. Brief explanation about WMs here. Explain ZSTD and applications.
+CSA. Brief explanation about WMs here. Explain ZSTD and applications?
 
 \subsection{Our model for compact trip representation}
 In our previous structures proposed in \cite{brisaboa2018new}, we propose a work-in-progress model to represent the demand information for a public transportation network, as seen in the Figure~\ref{fig:er}.
