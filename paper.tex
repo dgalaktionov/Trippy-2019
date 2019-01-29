@@ -124,14 +124,38 @@ There is a framework based on Apache Spark called Ultraman \cite{ding2018ultrama
 Apart from \cite{koide2018cinct}, in compact data structures there is PAPER ADRIAN\marginpar{We should wait to see if the Journal gets published soon}, which focuses on intersection queries for trajectories in free space, and  \cite{rivera2018faster}, which introduces two bitvectors to efficiently answer time interval queries.
 
 \subsection{Trajectory data mining}
-Currently there are several known techniques that would allow to collect data regarding users' trips over a public transportation network. Numerous works exist where these trajectories are mined from the transactions of smart cards (\cite{bhaskar2015passenger}, \cite{wang2014aggregated}). This can be complemented with information derived from GPS devices, as shown in \cite{ma2014development}. Alternatively, these trajectories may be extracted relying on positioning obtained from cellular networks, as proven by \cite{liu2017exploring}. 
+Currently there are several known techniques that would allow to collect data regarding users' trips over a public transportation network. Numerous works exist where these trajectories are mined from the transactions of smart cards \cite{bhaskar2015passenger,wang2014aggregated}. This can be complemented with information derived from GPS devices, as shown in \cite{ma2014development}. Alternatively, these trajectories may be extracted relying on positioning obtained from cellular networks, as proven by \cite{liu2017exploring}. 
 
 In addition, the authors of \cite{tao2014exploring} have specifically tackled the challenge of reconstructing full trajectories, accounting for trip-chaining, using data obtained from smart cards. Furthermore, in \cite{alsger2016validating} it is also proven that not only the alighting stops, but also the (last) destination stop of a trip can be estimated from boarding data gathered by a smart card, within a reasonable accuracy.
 
 This summarized review proves that, although we were not able to access real data from a public transportation company, such curated information about users' trips can indeed be obtained and used for our proposed representation.
 
-\subsection{Background structures and algorithms}
-CSA. Brief explanation about WMs here. Explain ZSTD and applications?
+\subsection{Underlying structures and algorithms}
+\subsubsection{Summed Area Tables}
+I mean maybe we should mention them :-)
+
+\subsubsection{Bitvectors}
+\label{sec:bit}
+A great amount of works in Compressed Data Structures revolve around bitvectors, both compressed and uncompressed. For a bitvector $B[1,n]$ the following operations are expected to be supported:
+
+\begin{itemize}
+    \item $rank_1(B,i)$ returns the number of set bits in $B[1..i]$. Alternatively, $rank_0(B,i) = i - rank_1(B,i)$ and also $B[i] = rank_1(B,i-1) - rank_1(B,i)$.
+    \item $select_1(B,i)$ returns the position in $1..n$ where the $i$th 1 occurs. Therefore, $rank_1(B,select_1(B,i)) = i$.
+\end{itemize}
+
+These operations can be supported in constant time with $o(n)$ extra bits \cite{Jac89,Mun96}, although several techniques exist for compressing bitvectors \cite{Raman:2002:SID:545381.545411,okanohara2007practical}. \marginpar{WTF is wrong with \cite{Golynski2007}?? I cannot find it, paywalls everywhere. Someone (Fari?) cited him before, but I am not going to cite something I cannot read...}
+
+\subsubsection{Compressed Suffix Array (CSA)}
+\label{sec:csa}
+One common structure to count or locate all the occurrences of a pattern $P[1,m]$ in a string $S[1,n]$ of symbols from an alphabet $\Sigma$ is the Suffix Array (SA) \cite{MM93}. The SA lexicographically sorts all the suffix of $S$ and builds an array $A[1,n]$ with their indexes, holding that $S[A[i],n] \prec S[A[i+1],n]$. This allows to find out all the occurrences of a substring $P[1,m]$ in $O(m \log n)$ with binary searches.
+
+A simple enhancement to avoid storing the original string $S$ is to align $A$ with a bitvector $D[1,n]$ where $D[i]=1~\Leftrightarrow~S[A[i-1]] \prec S[A[i]]$. That is, $D$ marks with a 1 all the indexes $i$ of $A$ where the starting symbol of that suffix $S[A[i]]$ has a larger lexicographical value than the one from the previous suffix $S[A[i-1]]$. With $D$, keeping $S$ is not longer needed as $S[A[i]] = rank_1(D,i)$, where $rank_1(D,i)$ returns the number of ones in $D[1..i]$.
+
+Sadakane's CSA \cite{Sad03} further reduces the space by replacing $A$ with a permutation $\Psi[1,n]$ \cite{GV00}, where given $A[i]=k$ and $A[j]=k+1$, $\Psi[i]=j$, while keeping the capability to count the occurrences of $P[1,m]$ in $O(m \log n)$ as the bitvector $D$ is still valid for the entries of $\Psi$. Although an uncompressed $\Psi$ would have the same space requirement as $A$, it is much more compressible as it is formed by $\sigma$ strictly increasing subsequences, being $\sigma$ the size of the alphabet $\Sigma$. Furthermore, it has been proved in \cite{NM07} that $\Psi$ can be split in $nH_k+\sigma^k$ (for any $k$) runs of consecutive values. It is therefore possible to compress $\Psi$ using $\delta$-encoding and run-length for the (frequent) runs of consecutive values. This property has allowed \cite{FBNCPR12}, among others, to achieve compression rates comparable to gzip for English text, while maintaining relatively fast random access by storing samples at regular intervals.
+
+\subsubsection{Wavelet Matrix (WM)}
+\label{sec:wm}
+Brief explanation about WMs here.
 
 \subsection{Our model for compact trip representation}
 In our previous structures proposed in \cite{brisaboa2018new}, we propose a work-in-progress model to represent the demand information for a public transportation network, as seen in the Figure~\ref{fig:er}.
