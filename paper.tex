@@ -63,65 +63,30 @@ These guys \cite{wang2014aggregated} made it so boring that they are probably no
 
 \section{Related works}
 \subsection{Trajectory indexing}
-Many data structures have been proposed to support efficient 
-query capabilities on collections of
-trajectories. We refer to~\cite[Chapter 4]{DBLP:books/sp/PelekisT14} for a comprehensive and
-up-to-date survey on data management techniques for trajectories of moving objects. We can broadly
-classify these data structures into two groups: those that index trajectories in free space and
-those that index trajectories that are constrained to a network.
+Literature on spatial trajectory indexing can be categorized by the nature of the trajectories: they can be either constrained to a network or in free space (often called moving objects). While there are well-known queries for indexes that work on moving objects in free space \cite{DBLP:conf/vldb/PfoserJT00}, the network constrained trajectory indexes cover more diverse querying needs, as different networks involve different kinds of challenges (as in vehicular road network vs public transportation network), and also because the intended application may vary (analyzing trip-chaining patterns vs number of passengers within a time window). A comprehensive review on indexing methods can be found in \cite[Chapter 4]{DBLP:books/sp/PelekisT14}, to which we shall expand in the rest of this section to mention the most notable indexes and some new developments.
 
-In free space, it is common to see spatial indexes that extend the {\em R-Tree} %spatial
-index~\cite{DBLP:conf/sigmod/Guttman84} beyond a simple {\em 3D R-Tree} where the time is one of the dimensions.
-Two examples of such indexes can be found in~\cite{DBLP:conf/vldb/PfoserJT00}
-where the authors present two fundamental variations of the {\em R-Tree}: the {\em STR-Tree} and the {\em TB-Tree}.
-Both indexes modify the classical construction algorithm for the {\em R-Tree},
-where the nodes are not only grouped by the spatial distance among the indexed objects,
-but also by the trajectories they belong to. In the {\em MV3R-tree}~\cite{DBLP:conf/vldb/PapadiasT01},
-the construction takes into account temporal information of the moving objects,
-adapting ideas from the Historical {\em R-Tree}~\cite{nascimento1998towards}. Another
-interesting approach is described in~\cite{chakka2003indexing}, where the authors
-split trajectories of moving objects across partitions of space, indexing each partition
-separately. This improves query efficiency, as only the partitions that intersect
-a query region are accessed.
+\subsubsection{Free trajectory indexing}
+Several adaptations of the {\em R-Tree} \cite{DBLP:conf/sigmod/Guttman84} are widely used for the indexing of moving objects. The most common approach is to integrate the temporal dimension in the R-Tree itself, as found in the {\em STR-Tree} and the {\em TB-Tree} from \cite{DBLP:conf/vldb/PfoserJT00}.
+Another common approach is to compliment the R-Tree with another similar structure, as has been done for the {\em MV3R-tree}~\cite{DBLP:conf/vldb/PapadiasT01},
+where an Historical {\em R-Tree}~\cite{nascimento1998towards} to partition on the temporal dimension.
 
-{\em R-Tree} adaptations can also be useful when the trajectories are constrained to a network.
-They exploit the constraints imposed by the topology of the network to optimize the data structure.
-This is the case of the {\em FNR-tree}~\cite{DBLP:conf/ssd/Frentzos03}, which consists of a 
-{\em 2D R-Tree} to index the %line 
-segments of the trajectories over the network,
-and a forest of {\em 1D R-Trees} used to index the time interval when each trajectory is moving through
-each segment of the network.
-The {\em MON-Tree}~\cite{DBLP:journals/geoinformatica/AlmeidaG05} can be seen as an
-improvement over the {\em FNR-Tree}, saving considerable space by indexing MBRs of larger
-network elements (edge segments or entire roads) and reducing the number of disk accesses at query time.
-Both indexes are outperformed by the {\em TMN-Tree}~\cite{chang2010tmn} in query time,
-which indexes whole trajectories of moving objects with a {\em 2D R$*$-Tree} and
-indexing the temporal component with a B$⁺$-Tree, which proves to be more efficient for
-that application than the {\em R-Tree}.
-A nice review of all the R-Tree derivatives: \cite{john2017performance}.
+The observation that, even for free trajectories, temporal dimension is generally more selective than spatial dimensions was heavily exploited in the subsequent works, such as {\em SETI} from \cite{chakka2003indexing}, where the space is partitioned statically and the time is indexed with a one dimensional R-Tree.
 
-{\em PARINET} is another interesting alternative to represent trajectories constrained to a network~\cite{DBLP:journals/vldb/PopaZOBV11}. %
+Recently a framework based on Apache Spark was developed called {\em UlTraMan}~ \cite{ding2018ultraman}, that supports different kinds of partitioning schemes for large collections of trajectories to answer range, kNN or aggregation queries, allowing to repartition the dataset to maximize the query time efficiency for a given query type. Although UlTraMan has been tested over network constrained trajectories, it does not appear to be exploiting network information in any way, hence its inclusion in this category.
 
-It partitions trajectories into segments from an underlying road network using a
-complex cost model to minimize the number of disk accesses at query time. It takes into
-account the spatial relations among the indexed network elements, as well as some statistics
-of the data to index. Then it adds a temporal B$⁺$-tree to index the trajectory segments from each road.
-Those indexes permit {\em PARINET} to filter out candidate trajectory segments matching time constraints at query time.
-The same ideas were used in {\em TRIFL}~\cite{that2015trifl}, where the cost model is adapted
-for flash storage.
+In the field of compact data structures, an index called {\em GraCT}~\cite{brisaboa2019gract} has been developed, based snapshots at regular time intervals using {\em k$^2$-Trees}~\cite{brisaboa2009k} and movement logs for individual trajectories to which grammar compression is applied with {\em RePair}~\cite{larsson2000off}. Because of this, GraCT is a self-indexed compact representation that supports spatio-temporal range and nearest-neighbor queries, as well as allowing for direct access to the trajectory information.
 
-In another work~\cite{DBLP:conf/gis/KroghPTT14} the authors propose an indexing structure called {\em NETTRA} to answer  
-{\em strict}  and {\em approximate path queries} that can be implemented in standard SQL using $B^+$-trees and self-JOIN operations.  
-For each trajectory, {\em NETTRA} represents the sequence of adjacent network edges touched by the trajectory as  
-entries in a table  with four columns:  id, entering and leaving time, and a hash value 
- of the entire path up to and including the edge itself.
-Using the hash value  for the first and last
-edge on a query path, {\em NETTRA}  determines whether
-the trajectory followed a specific path between these edges.
+\subsubsection{Network constrained trajectory indexing}
+There are also numerous approaches that use R-Tree based indexes for trajectories that are constrained to an underlying network, aiming to decrease the redundancy in the representation by separating the representation into levels. Examples of such indexes include the {\em FNR-Tree}~\cite{DBLP:conf/ssd/Frentzos03}, where the network elements are indexed with a 2D R-Tree and 1D R-Trees to index time intervals of moving objects along the edges of the network. Some of the limitations of the FNR-Tree are addressed in \cite{DBLP:journals/geoinformatica/AlmeidaG05}, where the authors propose the {\em MON-Tree}, where the moving objects are indexes in two dimensional R-Trees (the dimensions being edge position vs time). More recent alternatives also integrate {\em B$⁺$-Trees}, which has proven to be more space and time efficient for indexing the temporal dimension as proven by the {\em TMN-Tree}~\cite{chang2010tmn}. Refer to \cite{john2017performance} for a quick comparison of these R-Tree based indexes.
 
-There is a framework based on Apache Spark called Ultraman \cite{ding2018ultraman} that works over partitioned datasets of trajectories to answer range, kNN and aggregation queries. However, PAPER ADRIAN is better, as the former relies on disk access and serialization for most queries. For vehicles we also have this \cite{cai2018vector} and \cite{lovell2018lossless}. On contrast, in \cite{al2017semantictraj} we have a very nice example of a text-based trajectory indexing. Geodabs is another example of a text-based index that takes the sequence into account using fingerprinting \cite{chapuis2018geodabs}.
+As a competitive alternative to these R-Tree based indexes, {\em PARINET}~\cite{DBLP:journals/vldb/PopaZOBV11}, that builds spatial partitions from the trajectories based on their distribution and network topology, and uses a B$⁺$-Tree to index the trajectories in each partition by time intervals. Although candidate trajectories must be filtered in memory during queries, PARINET is highly efficient in practice as it minimizes the number of disk accesses needed.
+%The same ideas were used in {\em TRIFL}~\cite{that2015trifl}, where the cost model is adapted for flash storage.
 
-Apart from \cite{koide2018cinct}, in compact data structures there is PAPER ADRIAN\marginpar{We should wait to see if the Journal gets published soon}, which focuses on intersection queries for trajectories in free space, and  \cite{rivera2018faster}, which introduces two bitvectors to efficiently answer time interval queries.
+Another relevant representation is described in \cite{DBLP:conf/gis/KroghPTT14}. Their proposed index, {\em NETTRA}, was designed to efficiently solve a specific kind of query called {\em Strict Path Queries (SPQ)}, built on a traditional RDBMS with $B^+$-Tree indexes. Another distinctive feature of NETTRA is its treatment of network constrained trajectories as textual information, which allows to apply string matching techniques such as fingerprinting functions to determine what trajectories have similar paths on their traversed edges. This close equivalence between trajectories and strings has been further exploited by Geodabs~\cite{chapuis2018geodabs}, where both the spatial distribution and sequence information are taken into account for finding trajectories by similarity with fingerprinting. These text-based approaches are sometimes tangled with works on the topic of semantic trajectories such as \cite{al2017semantictraj}.
+
+%For vehicles we also have this \cite{cai2018vector} and \cite{lovell2018lossless}.
+
+Apart from \cite{koide2018cinct}, in compact data structures there \cite{rivera2018faster}, which introduces two bitvectors to efficiently answer time interval queries and us...
 
 \subsection{Trajectory data mining}
 Currently there are several known techniques that would allow to collect data regarding users' trips over a public transportation network. Numerous works exist where these trajectories are mined from the transactions of smart cards \cite{bhaskar2015passenger,wang2014aggregated}. This can be complemented with information derived from GPS devices, as shown in \cite{ma2014development}. Alternatively, these trajectories may be extracted relying on positioning obtained from cellular networks, as proven by \cite{liu2017exploring}. 
