@@ -54,12 +54,16 @@ The abstract should briefly summarize the contents of the paper in
 %
 %
 %
-\section{Introduction}
+\section{Introduction: sin hacer (queda para el final)}
 We took the idea from our SPIRE paper and we made it great, using ZSTD compression and other tricks to improve the time complexity of the queries for the \ctr. Regarding \acumm, it was not possible to improve its speed (as it was already a few memory accesses per query), but we managed to compress it without increasing time complexity. We rock.
 
 If possible, cite applications of our kind of analysis for transportat/ad companies, to show that what we are doing is useful. One example is \cite{tu2018spatial}. Another is \cite{zhang2017targeted}. And by the way, the guys in \cite{weng2018mining} do some analysis with data that has already boarding and alighting stops!
 
 These guys \cite{wang2014aggregated} made it so boring that they are probably not worth citing, but I'm keeping them here for now because they separate fridays and types of days, even though we don't care much about that anymore. OR DO WE?
+
+Aqui no estaria mal, ademas de motivar ;) completar con la estructura del paper, y de paso decir que es lo nuevo VS lo de SPIRE. (ej. Esta es una version extendida del X, donde hemos tratado de solucionar nuevas operaciones como x..., viendo que algunas de ellas se volvían ineficientes en el CTR original, decidimos realizar una nueva variante (\ctr), que permite responder más consultas eficientemente. Así, en la Seccion 2 T-R, en la seccon 3 - MODELO , en la seccion 4 mostramos nuestras propuestas y cómo utilizarlas para resolver consutlas... etc etc)
+
+
 
 \section{Related works}
 \subsection{Trajectory indexing}
@@ -147,7 +151,7 @@ This structure allows to answer the following operations in $O(log\sigma)$ time:
 
 While a compression method is proposed in \cite{CNO15} by using canonical Huffman encoding on the symbols, it could not be applied in our work because it severely reduces the efficiency of $range_{a,b}(S,i,j)$. Instead, we focused on compressing the bitvectors and using ad-hoc optimizations to reduce the average height of our WMs.
 
-\subsection{Our model for compact trip representation}
+\section{Our model for compact trip representation}
 In our previous structures proposed in \cite{brisaboa2018new}, we propose a work-in-progress model to represent the demand information for a public transportation network, as seen in the Figure~\ref{fig:er}.
 
 \begin{figure}
@@ -176,19 +180,27 @@ This approach allows us to treat the information in a layered fashion: the botto
 
 Finally, it is possible to introduce a \textbf{user} identity, with an anonymized identifier to segregate trips by users. However, we do not consider such information useful for the kind of analysis that this work focuses on. If needed in the future, this additional entity could be trivially integrated in our representation.
 
-\section{Relevant queries}
+\subsection{Relevant queries}
 \label{seq:rq}
 In the context of public transportation networks, we are interested in solving two kinds of queries:
 
 \begin{enumerate}[A)]
-    \item Aggregation of passengers, asking for the gross number of users that boarded or alighted within an area and a time window. Furthermore, it can be also interesting to obtain the average load of a bus or a train between any two stops from its line.
-    \item Movement patterns, or queries that focus on the sequence of trip stages. Examples of such queries are the number of times a stop was used to switch lines or the number of trips that started on a stop with another specific stop as the final destination.
+    \item Aggregation of passengers, asking for the gross number of users that boarded or alighted within an area and a time window. Furthermore, it can be also interesting to obtain the average load of a bus or a train between any two stops from its line.\marginpar{\tiny meteremos algún ejemplo de las consultas que después implementaremos}
+    \item Movement patterns, or queries that focus on the sequence of trip stages. Examples of such queries are the number of times a stop was used to switch lines or the number of trips that started on a stop with another specific stop as the final destination. 
 \end{enumerate}
+
+En concreto, en este paper nos hemos centrado en ...
+\begin{itemize}
+    \item  consulta 1
+    \item consutla 2
+    
+    
+\end{itemize}
 
 \section{Proposed Structures}
 \label{seq:ps}
 
-As of today, we are not aware of any indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{seq:rq}. For this reason, we propose two data structures, \acumm~and~\ctr. The first is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B.
+As of today, we are not aware of any indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{seq:rq}. For this reason, we propose two data structures, \acumm~and~\ctr. The former is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B.
 
 \subsection{Common Structures}
 Both \acumm~and \ctr~need a network representation to be operated, along with information about the transport vehicle journeys. Therefore, the following structures represent a network with stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
@@ -238,6 +250,8 @@ EXAMPLE
 
 One simple way of dealing with the growth of numbers in our cumulative solution is just apply a kind of sampling with differences; in this way, a basic example could be keep the middle column m ← (n s + 1)/2 explicitly, and representing the values in the other columns m±k as the difference with respect to column m.
 
+\subsection{CTR version de spire...}
+y despues la variante nueva (CTR2M).
 
 \subsection{\ctr}
 A user trip can be represented by the stops from the transportation system that were boarded by a user, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. These triplets describe a trip in a consecutive fashion, on the same order as the stops were boarded. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user has alighted, which line and journey will logically match the line and journey of the last boarding stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user\marginpar{[CITATION NEEDED]}.
@@ -253,8 +267,8 @@ A user trip can be represented by the stops from the transportation system that 
 We use three complementary structures to represent each component of the sequence, as shown in Figure~\ref{fig:example_ctr}:
 \begin{enumerate}[(i)]
     \item An adapted Compressed Suffix Array (CSA) over the stop identifiers of all trips, concatenated into a string with additional terminator symbols $\$$ appended at the end of each trip. While in the final CSA we assign these $\$$ a lexicographical value of 0 (thus smaller than any stop identifier), we assign them different values during the construction of the suffix array (A) to ensure that the entries for $\$$ in A maintain the same order as in the original text. Finally, we make a modification on $\Psi$ to make the entries of each $\$$ point to the start of its own trip instead of the next one. These two modifications are proven necessary for our implemented queries, at the expense of losing some of the properties of a classic CSA.
-    \item Aligned to the entries of (i) there is a Wavelet Matrix (WM) for the line identifiers of each stop. Aligned to the $\$$ section we duplicate the starting lines of each trip. As a trivial optimization, we build a separate WM for every stop, allowing us to save space due to the fact that a single stop does not usually belong to many lines, thus the average height of these WM is no larger (and usually smaller) than the height of a single WM.
-    \item A WM of jcodes aligned to the leaves of (ii). Note that this makes this structure dependant on (ii), which is coherent with the fact that journey codes themselves are relative to the line identifier. In case (ii) implements the optimization described, the entries of the WM must also be rearranged to match the delimited stops.
+    \item WML: Aligned to the entries of (i) there is a Wavelet Matrix (WM) for the line identifiers of each stop. Aligned to the $\$$ section we duplicate the starting lines of each trip. As a trivial optimization, we build a separate WM for every stop, allowing us to save space due to the fact that a single stop does not usually belong to many lines, thus the average height of these WM is no larger (and usually smaller) than the height of a single WM.
+    \item WVJ: A WM of jcodes aligned to the leaves of (ii). Note that this makes this structure dependant on (ii), which is coherent with the fact that journey codes themselves are relative to the line identifier. In case (ii) implements the optimization described, the entries of the WM must also be rearranged to match the delimited stops.
 \end{enumerate}
 
 As \ctr is a complete representation of the collection of trips, we are able to extract any trip using the structures described. \marginpar{The idea here is that explaining how to extract will help understand the more complex FromXtoY query later} The algorithm to extract a trip is shown in the Algorithm~\ref{alg:extract}, where \FuncSty{Rank} and \FuncSty{Select} operate over the bitvector $D$ from (i), \FuncSty{WML}{(s$_a$)} is the WM corresponding to the stop \DataSty{s$_a$} in the optimized version of (ii) and \FuncSty{TrackDown} returns the leaf index of a WM given a root index. In a practical implementation, it is not needed to access (ii) and (iii) for the line identifier and jcode of the last stop of the trip, as they will always match the previous ones.
