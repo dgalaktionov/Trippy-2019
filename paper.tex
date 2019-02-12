@@ -170,7 +170,7 @@ This approach allows us to treat the information in a layered fashion: the botto
 
 \begin{figure}
 \includegraphics[width=\textwidth]{example_network.eps}
-\caption{An example network for our model, with two lines and five stops}
+\caption{An example network for our model, with two lines and six stops}
 \label{fig:example_network}
 \end{figure}
 
@@ -181,16 +181,22 @@ Finally, it is possible to introduce a \textbf{user} identity, with an anonymize
 In the context of public transportation networks, we are interested in solving two kinds of queries:
 
 \begin{enumerate}[A)]
-    \item Aggregation of passengers, asking for the gross number of users that boarded or alighted within an area and a time window. Furthermore, it can be also interesting to obtain the average load of a bus or a train between any two stops from its line.\marginpar{\tiny meteremos algún ejemplo de las consultas que después implementaremos}
+    \item Aggregation of passengers, asking for the gross number of users that boarded or alighted within an area and a time window. Furthermore, it can be also interesting to obtain the average load of a bus or a train between any two stops from its line.
     \item Movement patterns, or queries that focus on the sequence of trip stages. Examples of such queries are the number of times a stop was used to switch lines or the number of trips that started on a stop with another specific stop as the final destination. 
 \end{enumerate}
 
-En concreto, en este paper nos hemos centrado en ...
+The following is a non-comprehensive list of query types that can be efficiently solved with the structures proposed in this work:
 \begin{itemize}
-    \item  consulta 1
-    \item consutla 2
-    
-    
+    \item \texttt{start\_X$_{LT}$} User trips starting at a stop X, optionally restricting to a line L and a time range T.
+    \item \texttt{end\_X$_{LT}$} User trips ending at a stop X, optionally restricting to a line L and a time range T.
+    \item \texttt{switch\_X$_{LT}$} Number of trips in which the stop X was used to switch lines, optionally restricting to a line L and a time range T.
+    \item \textt{from\_X$_{LT}$\_to\_Y$_{LT}$} User trips that originate at stop X to end at stop Y, both being optionally restricted to a line and time range.
+    \item \texttt{start\_L$_T$} User trips starting at any stop from the line L, optionally restricting to a time range T.
+    \item \texttt{end\_L$_T$} User trips ending at any stop from the line L, optionally restricting to a time range T.
+    \item \texttt{start\_T} User trips starting within a time range T.
+    \item \texttt{end\_T} User trips ending within a time range T.
+    \item \texttt{load\_X$_LT$} The average number of passengers traveling from the stop X to its next stop in the line L within the time range T. Can also be seen as the average load of a transport vehicle.
+
 \end{itemize}
 
 \section{Proposed Structures}
