@@ -166,7 +166,7 @@ These are the main elements from our model:
     \item An \textbf{user\_trip} is a concatenation of several stages, until the final destination (alighting stop of the last stage) is reached.
 \end{itemize}
 
-This approach allows us to treat the information in a layered fashion: the bottom layer is a static network representation, formed by the line and stop\_place entities, the middle layer are the journeys made by vehicles that make stops at specific times, while the top layer are the trips made by the users over these vehicle journeys. In the Figure~\ref{fig:example_network} we show an example for the two bottom layers. Our proposed implementation can be found in Section~\ref{seq:ps}.
+This approach allows us to treat the information in a layered fashion: the bottom layer is a static network representation, formed by the line and stop\_place entities, the middle layer are the journeys made by vehicles that make stops at specific times, while the top layer are the trips made by the users over these vehicle journeys. In the Figure~\ref{fig:example_network} we show an example for the two bottom layers. Our proposed implementation can be found in Section~\ref{sec:ps}.
 
 \begin{figure}
 \includegraphics[width=\textwidth]{example_network.eps}
@@ -177,7 +177,7 @@ This approach allows us to treat the information in a layered fashion: the botto
 Finally, it is possible to introduce a \textbf{user} identity, with an anonymized identifier to segregate trips by users. However, we do not consider such information useful for the kind of analysis that this work focuses on. If needed in the future, this additional entity could be trivially integrated in our representation.
 
 \subsection{Relevant queries}
-\label{seq:rq}
+\label{sec:rq}
 In the context of public transportation networks, we are interested in solving two kinds of queries:
 
 \begin{enumerate}[A)]
@@ -187,12 +187,18 @@ In the context of public transportation networks, we are interested in solving t
 
 The following is a non-comprehensive list of query types that can be efficiently solved with the structures proposed in this work:
 \begin{itemize}
+    \item \texttt{board\_X$_{LT}$} Number of times that stop X is boarded, optionally restricting to a line L and a time range T.
+    \item \texttt{alight\_X$_{LT}$} Number of times that stop X is alighted, optionally restricting to a line L and a time range T.
     \item \texttt{start\_X$_{LT}$} User trips starting at a stop X, optionally restricting to a line L and a time range T.
     \item \texttt{end\_X$_{LT}$} User trips ending at a stop X, optionally restricting to a line L and a time range T.
     \item \texttt{switch\_X$_{LT}$} Number of trips in which the stop X was used to switch lines, optionally restricting to a line L and a time range T.
-    \item \textt{from\_X$_{LT}$\_to\_Y$_{LT}$} User trips that originate at stop X to end at stop Y, both being optionally restricted to a line and time range.
+    \item \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} User trips that originate at stop X to end at stop Y, both being optionally restricted to a line and time range.
+    \item \texttt{board\_L$_T$}  Number of times that line L is boarded, optionally restricting to a time range T.
+    \item \texttt{alight\_L$_T$} Number of times that line L is alighted, optionally restricting to a time range T.
     \item \texttt{start\_L$_T$} User trips starting at any stop from the line L, optionally restricting to a time range T.
     \item \texttt{end\_L$_T$} User trips ending at any stop from the line L, optionally restricting to a time range T.
+    \item \texttt{board\_T} Number of times a user boards within a time range T.
+    \item \texttt{alight\_T} Number of times a user alights within a time range T.
     \item \texttt{start\_T} User trips starting within a time range T.
     \item \texttt{end\_T} User trips ending within a time range T.
     \item \texttt{load\_X$_LT$} The average number of passengers traveling from the stop X to its next stop in the line L within the time range T. Can also be seen as the average load of a transport vehicle.
@@ -200,9 +206,34 @@ The following is a non-comprehensive list of query types that can be efficiently
 \end{itemize}
 
 \section{Proposed Structures}
-\label{seq:ps}
+\label{sec:ps}
+As of today, we are not aware of any indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{sec:rq}. For this reason, we propose two data structures, \acumm~and~\ctr. The former is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B.
 
-As of today, we are not aware of any indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{seq:rq}. For this reason, we propose two data structures, \acumm~and~\ctr. The former is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B.
+\begin{table}
+\caption{Efficiency of \acumm~and \ctr against the queries described in Section~\ref{sec:rq}}
+\label{tab:queries}
+\begin{tabular}{|l|l|l|}
+\hline
+Query &  \acumm & \ctr\\
+\hline
+\texttt{board\_X$_{LT}$} & O(l) & sum of logs \\
+\texttt{alight\_X$_{LT}$} & O(l) & Hard$^*$ \\
+\texttt{start\_X$_{LT}$} & - & sum of logs \\
+\texttt{end\_X$_{LT}$} & - & sum of logs \\
+\texttt{switch\_X$_{LT}$} & - & sum of logs \\
+\texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} & - & sum of logs \\
+\texttt{board\_L$_T$} & O(1) & sum of logs \\
+\texttt{alight\_L$_T$} & O(1) & Approx. T \\
+\texttt{start\_L$_T$} & - & sum of logs \\
+\texttt{end\_L$_T$} & - & O(X) \\
+\texttt{board\_T} & O(l) & SuperHard$^*$ \\
+\texttt{alight\_T} & O(l) & MegaHard$^*$ \\
+\texttt{start\_T} & - & O(l) \\
+\texttt{end\_T} & - & SuperHard$^*$ \\
+\texttt{load\_X$_LT$} & O(l) & Hard$^*$ \\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{Common Structures}
 Both \acumm~and \ctr~need a network representation to be operated, along with information about the transport vehicle journeys. Therefore, the following structures represent a network with stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
@@ -372,68 +403,6 @@ For time, we will compare against SPIRE 2018, and maybe, IF WE HAVE TIME, with a
 
 \section{Conclusions}
 Speak about how cool would it be to have a single structure that could to it all. Pitch for our next paper with Gonzalo!
-
-\subsection{A Subsection Sample}
-Please note that the first paragraph of a section or subsection is
-not indented. The first paragraph that follows a table, figure,
-equation etc. does not need an indent, either.
-
-Subsequent paragraphs, however, are indented.
-
-\subsubsection{Sample Heading (Third Level)} Only two levels of
-headings should be numbered. Lower level headings remain unnumbered;
-they are formatted as run-in headings.
-
-\paragraph{Sample Heading (Fourth Level)}
-The contribution should contain no more than four levels of
-headings. Table~\ref{tab1} gives a summary of all heading levels.
-
-\begin{table}
-\caption{Table captions should be placed above the
-tables.}\label{tab1}
-\begin{tabular}{|l|l|l|}
-\hline
-Heading level &  Example & Font size and style\\
-\hline
-Title (centered) &  {\Large\bfseries Lecture Notes} & 14 point, bold\\
-1st-level heading &  {\large\bfseries 1 Introduction} & 12 point, bold\\
-2nd-level heading & {\bfseries 2.1 Printing Area} & 10 point, bold\\
-3rd-level heading & {\bfseries Run-in Heading in Bold.} Text follows & 10 point, bold\\
-4th-level heading & {\itshape Lowest Level Heading.} Text follows & 10 point, italic\\
-\hline
-\end{tabular}
-\end{table}
-
-
-\noindent Displayed equations are centered and set on a separate
-line.
-\begin{equation}
-x + y = z
-\end{equation}
-Please try to avoid rasterized images for line-art diagrams and
-schemas. Whenever possible, use vector graphics instead (see
-Fig.~\ref{fig1}).
-
-\begin{figure}
-\includegraphics[width=\textwidth]{fig1.eps}
-\caption{A figure caption is always placed below the illustration.
-Please note that short captions are centered, while long ones are
-justified by the macro package automatically.} \label{fig1}
-\end{figure}
-
-\begin{theorem}
-This is a sample theorem. The run-in heading is set in bold, while
-the following text appears in italics. Definitions, lemmas,
-propositions, and corollaries are styled the same way.
-\end{theorem}
-%
-% the environments 'definition', 'lemma', 'proposition', 'corollary',
-% 'remark', and 'example' are defined in the LLNCS documentclass as well.
-%
-\begin{proof}
-Proofs, examples, and remarks have the initial word in italics,
-while the following text appears in normal font.
-\end{proof}
 
 %
 % ---- Bibliography ----
