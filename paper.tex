@@ -170,6 +170,7 @@ These are the main elements from our model:
 
 This approach allows us to treat the information in a layered fashion: the bottom layer is a static network representation, formed by the line and stop\_place entities, the middle layer are the journeys made by vehicles that make stops at specific times, while the top layer are the trips made by the users over these vehicle journeys. In the Figure~\ref{fig:example_network} we show an example for the two bottom layers. Our proposed implementation can be found in Section~\ref{sec:ps}.
 
+\marginpar{\tiny Nieves: cambiar trazo da line 2, e chamarlle line 1 rev}
 \begin{figure}
 \includegraphics[width=\textwidth]{example_network.eps}
 \caption{An example network for our model, with two lines and six stops}
@@ -188,6 +189,7 @@ In the context of public transportation networks, we are interested in solving t
 \end{enumerate}
 
 The following is a non-comprehensive list of query types that can be efficiently solved with the structures proposed in this work:
+\marginpar{\tiny Nieves: Reorganizar seguindo a clasificación}
 \begin{itemize}
     \item \texttt{board\_X$_{LT}$} Number of times that stop X is boarded, optionally restricting to a line L and a time range T.
     \item \texttt{alight\_X$_{LT}$} Number of times that stop X is alighted, optionally restricting to a line L and a time range T.
