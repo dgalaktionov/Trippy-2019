@@ -243,6 +243,7 @@ An example of these structures interacting together can be found at the Algorith
 \end{algorithm}
 
 \subsection{\acumm}
+\label{sec:acumm}
 As it has been stated previously in this paper, nowadays it could be relatively simple to gather massive information about user trips in every public transport; however, it is not necessary to store individually each trip. If there are two (or more) commuters sharing the same bus (train/tram/etc), they are also sharing the route, the stops (the time of each stop) and even the network. Therefore, a structure storing the aggregated data of the user trips would be a handy solution to solve (at least) queries of type A presented in section 3.
 
 Thus, we propose the T-Matrix (this is the 3rd name it has), an accumulated solution that involves two-dimensional matrices of integers enabling aggregated queries by row, column, or window/range. In the context of a public trasnportation network, it would by useful to solve flexible line-centered queries; that is, queries that support aggregation by any dimension. Therefore, it could be possible to aggregate either by time-interval (e.g. number of users got on at any stop of the line on 2019/01/02); by stop (e.g. number of commuters that got on a bus at stop S); or by stop and time-interval.
@@ -263,6 +264,7 @@ One simple way of dealing with the growth of numbers in our cumulative solution 
 y despues la variante nueva (CTR2M).
 
 \subsection{\ctr}
+\label{sec:ctr}
 A user trip can be represented by the stops from the transportation system that were boarded by a user, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. These triplets describe a trip in a consecutive fashion, on the same order as the stops were boarded. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user has alighted, which line and journey will logically match the line and journey of the last boarding stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user\marginpar{[CITATION NEEDED]}.
 
 \ctr~is built first by sorting all trips. If we consider that a trip is composed by $n$ of the $<s_i,l_i,j_i>,~1\leq i\leq n$ triplets previously described, where the first triplet corresponds to the first boarded stop and the last triplet corresponds to the last alighted stop (final destination), then the collection of trips is sorted by the key $s_1,s_n,l_1,j_1$. That is, trips are initially sorted by the first boarded stop identifier. If these are equal, they are then sorted by their last stop identifier, analogously followed by the line identifier and journey code of the first stop. Figure~\ref{fig:example_ctr} displays an example of a correct sorting of trips.
@@ -388,13 +390,13 @@ Query &  \acumm & \ctr\\
 \texttt{end\_X$_{LT}$} & - & \ctrq\tnote{b} \\
 \texttt{switch\_X$_{LT}$} & - & \ctrq\tnote{b} \\
 \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} & - & \ctrq\tnote{b} \\
-\texttt{board\_L$_T$} & O(1) & $O(ns \times \ctrq)$\tnote{be} \\
-\texttt{alight\_L$_T$} & O(1) & $O(ns \times \ctrq)$\tnote{bce} \\
-\texttt{start\_L$_T$} & - & \ctrq\tnote{b} \\
-\texttt{end\_L$_T$} & - & $O(ns \times log(|L|\times\bar{|J^l|}))$\tnote{ef} \\
-\texttt{board\_T} & $O(l)$\tnote{a} & Hard\tnote{d} \\
-\texttt{alight\_T} & $O(l)$\tnote{a} & Hard\tnote{cd} \\
-\texttt{start\_T} & - & $O(|L| \times log\bar{|J^l|})$\tnote{f} \\
+\texttt{board\_L$_T$} & O(1) & $O(|S| \times \ctrq)$\tnote{be} \\
+\texttt{alight\_L$_T$} & O(1) & $O(|S| \times \ctrq)$\tnote{bce} \\
+\texttt{start\_L$_T$} & - & $O(log(|L|\times\bar{|J^l|}))$\tnote{fg} \\
+\texttt{end\_L$_T$} & - & $O(|S| \times \ctrq)$\tnote{be} \\
+\texttt{board\_T} & $O(|L|)$\tnote{f} & Hard\tnote{d} \\
+\texttt{alight\_T} & $O(|L|)$\tnote{f} & Hard\tnote{cd} \\
+\texttt{start\_T} & - & $O(|L| \times log(|L|\times\bar{|J^l|}))$\tnote{fg} \\
 \texttt{end\_T} & - & Hard\tnote{d} \\
 \texttt{load\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} \\
 \hline
@@ -402,16 +404,34 @@ Query &  \acumm & \ctr\\
 
 \begin{tablenotes}
 \item[a] $l$ is the number of lines we restrict to.
-\item[b] The complexity of a \ctrq~query varies with the restrictions.
+\item[b] The complexity of \ctrq~ varies with the restrictions.
 \item[c] May include false positives.
 \item[d] Not practical to solve with the indexing capabilities of \ctr.
-\item[e] $ns$ is the number of stops in the line L.
-\item[f] $|L|$ is the total number of lines represented, and $\bar{|J^l|}$ is the average number of jcodes per line.
+\item[e] $|S|$ is the number of stops in the line L.
+\item[f] $|L|$ is the total number of lines represented.
+\item[g] $\bar{|J^l|}$ is the average number of jcodes per line.
 \end{tablenotes}
 \end{threeparttable}
 
+\medskip
+Before explaining the details of how each of these operations would be implemented in both representations, it is worth noting that the complexity of \ctrq~will depend on the restrictions that are applied, as they will yield different variations of Algorithm~\ref{alg:xy}, as explained by the end of the Section~\ref{sec:ctr}. Generally, the time complexity of \ctrq~with all the restrictions is bounded by one \FuncSty{GetRange} operation on \FuncSty{CSA} to restrict by a stop ID, one on \FuncSty{WML} to restrict by a line ID and finally another one on \FuncSty{WMJ} to restrict by jcodes, with a total complexity of $O(log(n\times|L|\times\bar{|J^l|}))$, being $n$ the size of the represented sequences. However, when only the time is restricted, every line that the queried stop belongs to must be considered, thus increasing the worst-case complexity to $O(log(n) + |L|\times log(|L|\times\bar{|J^l|}))$.
 
-In \ctr, the only alighting stops that are explicitly represented are the final stops. To obtain an approximated count of the rest of them, we would need to extract and examine all the occurrences for board\_W$_{LT}$ for every W that could have been boarded before X, as the worst-case time complexity of solving with the index operations is prohibitive.
+\begin{itemize}
+    \item \texttt{board\_X$_{LT}$} This can be solved easily in the \acumm, as there are aggregated matrices for boarding stops, even though it is necessary to access a separate matrix for every line queried, hence $O(l)$. For \ctr, the number of occurrences for the stop X is counted by delimiting its range on \FuncSty{D} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed. From this number we must subtract the occurrences of final stops, obtained by one end\_X$_{LT}$ with the same restrictions.
+    \item \texttt{alight\_X$_{LT}$} In \ctr, the only alighting stops that are explicitly represented are the final stops. To obtain an approximated count of the rest of them, we would need to extract and examine all the occurrences for \texttt{board\_W$_{LT}$} for every W that could have been boarded before X, as the worst-case time complexity of solving with its index operations is prohibitive. On the other hand, it can be solved much faster in \acumm~by accessing the alighting matrices.
+    \item \texttt{start\_X$_{LT}$} Can only be solved in \ctr, by delimiting the range for the pattern $\$X$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed.
+    \item \texttt{end\_X$_{LT}$} Can only be solved in \ctr, by delimiting the range for the pattern $X\$$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed.
+    \item \texttt{switch\_X$_{LT}$} Calculated as board\_X$_{LT}$ - start\_X$_{LT}$.
+    \item \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} Explained in detail in Algorithm~\ref{alg:xy}.
+    \item \texttt{board\_L$_T$} Straightforward in \acumm, as it only needs to access one matrix. While in \ctr the total number of occurences of line L can be calculated in one $O(log|L|)$ operation (with additional filtering through \FuncSty{WMJ} if needed), we need to subtract the occurrences of start\_L$_T$ and end\_L$_T$, the later having a greater complexity of $O(|S| \times \ctrq)$.
+    \item \texttt{alight\_L$_T$} Can be approximated in \ctr with board\_L$_T$, given that every user that boards on a line is expected to alight from it within a reasonable time.
+    \item \texttt{start\_L$_T$} Can only be solved in \ctr, by filtering down \FuncSty{WML} and \FuncSty{WMJ}, if needed, over the $\$$ section of the \FuncSty{CSA}.
+    \item \texttt{end\_L$_T$} Can only be solved in \ctr, by performing a end\_X$_{LT}$ for every X from the line L.
+    \item \texttt{board\_T} and \texttt{alight\_T} Although \acumm~and \ctr could solve it by applying board\_L$_T$ $|L|$ times, this would imply a prohibitive cost for \ctr, where extracting all the trips would be preferred in practice.
+    \item \texttt{start\_T} Solved in the \ctr by applying \texttt{start\_X$_{LT}$} $|L|$ times.
+    \item \texttt{end\_T} Neither of our representations can solve this query efficiently, although it could be approximated by \texttt{start\_T} in CTR.
+    \item \texttt{load\_X$_{LT}$} This can be easily calculated in \acumm~as detailed in Section~\ref{sec:acumm}. \marginpar{Tirso please explain how!}
+\end{itemize}
 
 \section{Experiments}
 \label{sec:exp}
