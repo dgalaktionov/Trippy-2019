@@ -16,9 +16,11 @@
 \usepackage{marginnote}
 \usepackage[linesnumbered,commentsnumbered,boxed]{algorithm2e}
 \usepackage{amsmath}
+\usepackage{threeparttable}
 
 \newcommand{\acumm}{T-Matrices} % T is for Total!
 \newcommand{\ctr}{NewCTR (name subject to change)\ }
+\newcommand{\ctrq}{NCTRc}
 
 \begin{document}
 %
@@ -201,39 +203,13 @@ The following is a non-comprehensive list of query types that can be efficiently
     \item \texttt{alight\_T} Number of times a user alights within a time range T.
     \item \texttt{start\_T} User trips starting within a time range T.
     \item \texttt{end\_T} User trips ending within a time range T.
-    \item \texttt{load\_X$_LT$} The average number of passengers traveling from the stop X to its next stop in the line L within the time range T. Can also be seen as the average load of a transport vehicle.
+    \item \texttt{load\_X$_{LT}$} The average number of passengers traveling from the stop X to its next stop in the line L within the time range T. Can also be seen as the average load of a transport vehicle.
 
 \end{itemize}
 
 \section{Proposed Structures}
 \label{sec:ps}
 As of today, we are not aware of any indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{sec:rq}. For this reason, we propose two data structures, \acumm~and~\ctr. The former is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B.
-
-\begin{table}
-\caption{Efficiency of \acumm~and \ctr against the queries described in Section~\ref{sec:rq}}
-\label{tab:queries}
-\begin{tabular}{|l|l|l|}
-\hline
-Query &  \acumm & \ctr\\
-\hline
-\texttt{board\_X$_{LT}$} & O(l) & sum of logs \\
-\texttt{alight\_X$_{LT}$} & O(l) & Hard$^*$ \\
-\texttt{start\_X$_{LT}$} & - & sum of logs \\
-\texttt{end\_X$_{LT}$} & - & sum of logs \\
-\texttt{switch\_X$_{LT}$} & - & sum of logs \\
-\texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} & - & sum of logs \\
-\texttt{board\_L$_T$} & O(1) & sum of logs \\
-\texttt{alight\_L$_T$} & O(1) & Approx. T \\
-\texttt{start\_L$_T$} & - & sum of logs \\
-\texttt{end\_L$_T$} & - & O(X) \\
-\texttt{board\_T} & O(l) & SuperHard$^*$ \\
-\texttt{alight\_T} & O(l) & MegaHard$^*$ \\
-\texttt{start\_T} & - & O(l) \\
-\texttt{end\_T} & - & SuperHard$^*$ \\
-\texttt{load\_X$_LT$} & O(l) & Hard$^*$ \\
-\hline
-\end{tabular}
-\end{table}
 
 \subsection{Common Structures}
 Both \acumm~and \ctr~need a network representation to be operated, along with information about the transport vehicle journeys. Therefore, the following structures represent a network with stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
@@ -394,6 +370,48 @@ We will now proceed to explain the Algorithm~\ref{alg:xy} line by line:
 It is trivial to reuse the Algorithm~\ref{alg:xy} to answer queries with less constrains. For example, if we were only interested in restricting the starting line, we could return \DataSty{z}-\DataSty{a} after line 7. Or if we only wanted to restrict the ending line and time, we can do it by skipping the lines 4-12, and using directly \FuncSty{GetRange}{(\FuncSty{WML}{(s$_z$)},left-offset,right-offset,l$_z$)} in line 14. The complexity would increase if we restricted by a time window but not by lines, as would need to iterate through all possible lines for \DataSty{s$_a$} and \DataSty{s$_z$} to obtain the jcodes for each line and perform these operations on \texttt{WML} and \texttt{WMJ}. Fortunately, the number of lines that a single stop can belong to tends to be rather small in practice, thus with a careful implementation that avoids repeating computation the performance of such query scales well, as will be shown later in Section~\ref{sec:exp}. Finally, to obtain only the trips that started on a given stop we would simply need to set \DataSty{pattern} to $\{0,s_a\}$ in line 2, or alternatively to $\{s_z,0\}$ for the final stop, and skipping the operations on the sections of \DataSty{s$_z$} or $\$$, respectively.
 
 Of course, \ctr can also be used to efficiently obtain other interesting information about trips, such as the top k most boarded stops, as shown in \cite{brisaboa2018compact}, with the additional possibility of differentiating stops that are only used to switch lines in \ctr. However, there is no known way of using this representation to obtain other kinds of information efficiently (e.g. the number of passengers in a journey between two stops).
+
+\subsection{Comparing \acumm and \ctr}
+\label{sec:comp}
+Better show this after they have been both explained...
+
+\begin{threeparttable}
+\caption{Efficiency of \acumm~and \ctr against the queries described in Section~\ref{sec:rq}}
+\label{tab:queries}
+\begin{tabular}{|l|l|l|}
+\hline
+Query &  \acumm & \ctr\\
+\hline
+\texttt{board\_X$_{LT}$} & $O(l)$\tnote{a} & \ctrq\tnote{b} \\
+\texttt{alight\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} \\
+\texttt{start\_X$_{LT}$} & - & \ctrq\tnote{b} \\
+\texttt{end\_X$_{LT}$} & - & \ctrq\tnote{b} \\
+\texttt{switch\_X$_{LT}$} & - & \ctrq\tnote{b} \\
+\texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} & - & \ctrq\tnote{b} \\
+\texttt{board\_L$_T$} & O(1) & $O(ns \times \ctrq)$\tnote{be} \\
+\texttt{alight\_L$_T$} & O(1) & $O(ns \times \ctrq)$\tnote{bce} \\
+\texttt{start\_L$_T$} & - & \ctrq\tnote{b} \\
+\texttt{end\_L$_T$} & - & $O(ns \times log(|L|\times\bar{|J^l|}))$\tnote{ef} \\
+\texttt{board\_T} & $O(l)$\tnote{a} & Hard\tnote{d} \\
+\texttt{alight\_T} & $O(l)$\tnote{a} & Hard\tnote{cd} \\
+\texttt{start\_T} & - & $O(|L| \times log\bar{|J^l|})$\tnote{f} \\
+\texttt{end\_T} & - & Hard\tnote{d} \\
+\texttt{load\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} \\
+\hline
+\end{tabular}
+
+\begin{tablenotes}
+\item[a] $l$ is the number of lines we restrict to.
+\item[b] The complexity of a \ctrq~query varies with the restrictions.
+\item[c] May include false positives.
+\item[d] Not practical to solve with the indexing capabilities of \ctr.
+\item[e] $ns$ is the number of stops in the line L.
+\item[f] $|L|$ is the total number of lines represented, and $\bar{|J^l|}$ is the average number of jcodes per line.
+\end{tablenotes}
+\end{threeparttable}
+
+
+In \ctr, the only alighting stops that are explicitly represented are the final stops. To obtain an approximated count of the rest of them, we would need to extract and examine all the occurrences for board\_W$_{LT}$ for every W that could have been boarded before X, as the worst-case time complexity of solving with the index operations is prohibitive.
 
 \section{Experiments}
 \label{sec:exp}
