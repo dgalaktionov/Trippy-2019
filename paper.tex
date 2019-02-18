@@ -162,20 +162,19 @@ In our previous structures proposed in \cite{brisaboa2018new}, we propose a work
 These are the main elements from our model:
 \begin{itemize}
     \item A \textbf{stop\_place} is a physical stop with a location, on which several lines may make stops.
-    \item A \textbf{line} is an ordered sequence of stop places that can be traveled by a transport vehicle, such as a bus or a train. It only considers one direction. For this reason, there is often a different and complementary line for the opposite direction.
+    \item A \textbf{line} is an ordered sequence of stop places that can be traveled by a transport vehicle, such as a bus or a train. It only considers one direction. For this reason, there is often a different and complementary line for the opposite direction, as shown in the Figure~\ref{fig:example_network}.
     \item A \textbf{journey} is a single traversal of a transport vehicle over a line. It can be seen as a vehicle trip, instead of a user trip.
     \item A \textbf{stage} is formed by a boarding from a stop and alighting to another from the same single line and journey.
     \item An \textbf{user\_trip} is a concatenation of several stages, until the final destination (alighting stop of the last stage) is reached.
 \end{itemize}
 
-This approach allows us to treat the information in a layered fashion: the bottom layer is a static network representation, formed by the line and stop\_place entities, the middle layer are the journeys made by vehicles that make stops at specific times, while the top layer are the trips made by the users over these vehicle journeys. In the Figure~\ref{fig:example_network} we show an example for the two bottom layers. Our proposed implementation can be found in Section~\ref{sec:ps}.
-
-\marginpar{\tiny Nieves: cambiar trazo da line 2, e chamarlle line 1 rev}
 \begin{figure}
 \includegraphics[width=\textwidth]{example_network.eps}
 \caption{An example network for our model, with two lines and six stops}
 \label{fig:example_network}
 \end{figure}
+
+This approach allows us to treat the information in a layered fashion: the bottom layer is a static network representation, formed by the line and stop\_place entities, the middle layer are the journeys made by vehicles that make stops at specific times, while the top layer are the trips made by the users over these vehicle journeys. In the Figure~\ref{fig:example_network} we show an example for the two bottom layers. Our proposed implementation can be found in Section~\ref{sec:ps}.
 
 Finally, it is possible to introduce a \textbf{user} identity, with an anonymized identifier to segregate trips by users. However, we do not consider such information useful for the kind of analysis that this work focuses on. If needed in the future, this additional entity could be trivially integrated in our representation.
 
@@ -377,7 +376,7 @@ Of course, \ctr can also be used to efficiently obtain other interesting informa
 
 \subsection{Comparing \acumm and \ctr}
 \label{sec:comp}
-Better show this after they have been both explained...
+Better show this after they have been both explained... \marginpar{\tiny Include TTCTR in the table}
 
 \begin{threeparttable}
 \caption{Efficiency of \acumm~and \ctr against the queries described in Section~\ref{sec:rq}}
