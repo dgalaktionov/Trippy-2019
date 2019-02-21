@@ -438,84 +438,40 @@ Before explaining the details of how each of these operations would be implement
 \label{sec:exp}
 For space, I propose to compare with our previous structures and with a plain representation using bits per symbol (bps). Otherwise, the baseline we select for our $\%$ can be misleading.
 
-\begin{table}
-\caption{Comparison of start\_X$_{LT}$ queries, with all variants}
-\label{tab:queries}
-\begin{tabular}{|r|r|r|r|r|r|}
-\hline
-$t_{\Psi}$ & \texttt{WMJ} & \texttt{start\_X} & \texttt{start\_X$_{L}$} & \texttt{start\_X$_{T}$} & \texttt{start\_X$_{LT}$} \\
-\hline
-32 & RG32 & 4.20 & 4.16 & 18.52 & 8.22 \\
-32 & RRR32 & 4.18 & 4.18 & 21.01 & 9.43 \\
-32 & RRR64 & 4.21 & 4.15 & 21.70 & 9.65 \\
-32 & RRR128 & 4.18 & 4.15 & 23.20 & 10.22 \\
-128 & RG32 & 6.96 & 6.94 & 25.05 & 10.68 \\
-128 & RRR32 & 6.96 & 6.94 & 27.44 & 11.78 \\
-128 & RRR64 & 6.95 & 6.95 & 28.05 & 12.04 \\
-128 & RRR128 & 6.94 & 6.94 & 29.64 & 12.62 \\
-512 & RG32 & 17.01 & 16.85 & 51.36 & 21.13 \\
-512 & RRR32 & 17.03 & 16.92 & 53.78 & 21.80 \\
-512 & RRR64 & 17.05 & 16.86 & 54.43 & 22.01 \\
-512 & RRR128 & 17.00 & 17.08 & 55.88 & 22.65 \\
-\hline
-\end{tabular}
+\begin{figure}[hbt!]
+\includegraphics[width=\textwidth]{experiments/board.eps}
+\caption{Comparison of \texttt{board\_X$_{LT}$} queries, with all variants}
+\end{figure}
 
-\begin{tabular}{|r|r|r|r|r|r|r|}
-\hline
-$t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{start\_X} & \texttt{start\_X$_{L}$} & \texttt{start\_X$_{T}$} & \texttt{start\_X$_{LT}$} \\
-\hline
-32 & RG32 & RG32 & 3.41 & 5.85 & 20.39 & 11.58 \\
-32 & RG32 & RRR32 & 3.44 & 5.82 & 23.15 & 12.99 \\
-32 & RG32 & RRR64 & 3.42 & 5.82 & 23.70 & 13.22 \\
-32 & RG32 & RRR128 & 3.44 & 5.83 & 25.09 & 13.77 \\
-32 & RRR32 & RG32 & 3.42 & 5.52 & 20.72 & 11.68 \\
-32 & RRR32 & RRR32 & 3.42 & 5.49 & 23.27 & 12.93 \\
-32 & RRR32 & RRR64 & 3.43 & 5.45 & 23.75 & 13.17 \\
-32 & RRR32 & RRR128 & 3.42 & 5.49 & 25.16 & 13.71 \\
-32 & RRR64 & RG32 & 3.44 & 5.61 & 21.16 & 11.70 \\
-32 & RRR64 & RRR32 & 3.46 & 5.59 & 23.66 & 13.01 \\
-32 & RRR64 & RRR64 & 3.44 & 5.58 & 24.33 & 13.26 \\
-32 & RRR64 & RRR128 & 3.41 & 5.63 & 25.67 & 13.78 \\
-32 & RRR128 & RG32 & 3.50 & 6.05 & 22.24 & 12.09 \\
-32 & RRR128 & RRR32 & 3.41 & 6.15 & 24.62 & 13.34 \\
-32 & RRR128 & RRR64 & 3.42 & 7.20 & 25.44 & 13.64 \\
-32 & RRR128 & RRR128 & 3.43 & 6.11 & 26.66 & 14.16 \\
-128 & RG32 & RG32 & 6.34 & 9.43 & 22.65 & 14.02 \\
-128 & RG32 & RRR32 & 6.30 & 8.55 & 25.45 & 15.37 \\
-128 & RG32 & RRR64 & 6.39 & 8.53 & 26.00 & 15.66 \\
-128 & RG32 & RRR128 & 6.33 & 8.53 & 27.36 & 16.21 \\
-128 & RRR32 & RG32 & 6.30 & 8.28 & 22.98 & 14.07 \\
-128 & RRR32 & RRR32 & 6.46 & 8.23 & 25.45 & 15.29 \\
-128 & RRR32 & RRR64 & 6.32 & 8.29 & 26.05 & 15.55 \\
-128 & RRR32 & RRR128 & 6.31 & 8.29 & 27.43 & 16.10 \\
-128 & RRR64 & RG32 & 6.33 & 8.54 & 23.53 & 14.22 \\
-128 & RRR64 & RRR32 & 6.30 & 8.54 & 25.83 & 15.38 \\
-128 & RRR64 & RRR64 & 6.31 & 8.46 & 26.46 & 15.61 \\
-128 & RRR64 & RRR128 & 6.30 & 8.48 & 27.82 & 16.18 \\
-128 & RRR128 & RG32 & 6.31 & 8.91 & 24.52 & 14.52 \\
-128 & RRR128 & RRR32 & 6.30 & 8.94 & 27.09 & 15.85 \\
-128 & RRR128 & RRR64 & 6.30 & 8.93 & 27.71 & 16.04 \\
-128 & RRR128 & RRR128 & 6.36 & 8.91 & 28.95 & 16.55 \\
-512 & RG32 & RG32 & 16.32 & 18.64 & 32.55 & 24.02 \\
-512 & RG32 & RRR32 & 16.29 & 18.63 & 35.31 & 25.44 \\
-512 & RG32 & RRR64 & 16.28 & 18.65 & 35.81 & 25.61 \\
-512 & RG32 & RRR128 & 16.28 & 18.64 & 37.31 & 26.22 \\
-512 & RRR32 & RG32 & 17.37 & 19.01 & 33.22 & 24.39 \\
-512 & RRR32 & RRR32 & 16.33 & 18.38 & 35.44 & 26.38 \\
-512 & RRR32 & RRR64 & 16.29 & 18.42 & 36.10 & 25.64 \\
-512 & RRR32 & RRR128 & 16.40 & 18.39 & 37.35 & 26.23 \\
-512 & RRR64 & RG32 & 16.30 & 18.59 & 33.50 & 24.27 \\
-512 & RRR64 & RRR32 & 16.30 & 18.56 & 35.83 & 25.48 \\
-512 & RRR64 & RRR64 & 16.32 & 18.57 & 36.60 & 25.72 \\
-512 & RRR64 & RRR128 & 16.35 & 18.66 & 37.82 & 26.29 \\
-512 & RRR128 & RG32 & 16.33 & 19.02 & 34.69 & 24.68 \\
-512 & RRR128 & RRR32 & 16.30 & 19.04 & 36.95 & 25.81 \\
-512 & RRR128 & RRR64 & 16.33 & 19.03 & 37.56 & 26.04 \\
-512 & RRR128 & RRR128 & 16.27 & 19.02 & 38.89 & 26.62 \\
+\begin{figure}[hbt!]
+\includegraphics[width=\textwidth]{experiments/start.eps}
+\caption{Comparison of \texttt{start\_X$_{LT}$} queries, with all variants}
+\end{figure}
 
-\hline
-\end{tabular}
-\end{table}
+\begin{figure}[hbt!]
+\includegraphics[width=\textwidth]{experiments/end.eps}
+\caption{Comparison of \texttt{end\_X$_{LT}$} queries, with all variants}
+\end{figure}
+
+\begin{figure}[hbt!]
+\includegraphics[width=\textwidth]{experiments/xy0.eps}
+\caption{Comparison of \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} queries, variating line restrictions}
+\end{figure}
+
+\begin{figure}[hbt!]
+\includegraphics[width=\textwidth]{experiments/xy1.eps}
+\caption{Comparison of \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} queries, variating line restrictions with a fixed starting time restriction}
+\end{figure}
+
+\begin{figure}[hbt!]
+\includegraphics[width=\textwidth]{experiments/xy2.eps}
+\caption{Comparison of \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} queries, variating line restrictions with a fixed ending time restriction}
+\end{figure}
+
+\begin{figure}[hbt!]
+\includegraphics[width=\textwidth]{experiments/xy3.eps}
+\caption{Comparison of \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} queries, variating line restrictions with fixed starting and ending time restriction}
+\end{figure}
 
 For time, we will compare against SPIRE 2018, and maybe, IF WE HAVE TIME, with a plain postgresql baseline. Experiments will be executed in Compostela2 or whatever we'll have available.
 
