@@ -17,6 +17,7 @@
 \usepackage[linesnumbered,commentsnumbered,boxed]{algorithm2e}
 \usepackage{amsmath}
 \usepackage{threeparttable}
+\usepackage[margin=0pt,skip=1pt]{subcaption}
 
 \newcommand{\acumm}{T-Matrices} % T is for Total!
 \newcommand{\ctr}{XCTR}
@@ -262,8 +263,8 @@ EXAMPLE
 
 One simple way of dealing with the growth of numbers in our cumulative solution is just apply a kind of sampling with differences; in this way, a basic example could be keep the middle column m ← (n s + 1)/2 explicitly, and representing the values in the other columns m±k as the difference with respect to column m.
 
-\subsection{CTR version de spire...}
-y despues la variante nueva (CTR2M).
+\subsection{\ttctr}
+Version de spire y despues la variante nueva (\ctr).
 
 \subsection{\ctr}
 \label{sec:ctr}
@@ -380,6 +381,7 @@ Of course, \ctr~can also be used to efficiently obtain other interesting informa
 Better show this after they have been both explained... \marginpar{\tiny Include TTCTR in the table}
 
 \begin{threeparttable}
+\centering
 \caption{Efficiency of \acumm~and \ctr~against the queries described in Section~\ref{sec:rq}}
 \label{tab:queries}
 \begin{tabular}{|l|l|l|}
@@ -443,10 +445,108 @@ In this section we discuss the practical performance of our structures. To evalu
 Write about the generation of Madrid dataset from real bus journeys.
 
 \subsection{Space requirments}
-Missing space tables with total size, compression and bps!
+Discuss why we are getting these sizes, and compare. Missing \acumm~sizes!
+
+\begin{table}
+    \centering
+    \caption{Sizes of the common structures}
+    \begin{tabular}{|c|c|c|c|c|c|}
+    \hline
+        Structure & $lineStop$ & $stopLine$ & $avgTime$ & $initialTime$ & Total \\
+        \hline
+        Size (KiB) & 119 & 141 & 64 & 440 & 764 \\
+    \hline
+    \end{tabular}
+\end{table}
+
+\begin{table}
+    \caption{Space requirements for the CSA (a) and the WM (b) from \ttctr}
+    \begin{subtable}[t]{.48\linewidth}
+    \vspace{-12pt}
+    \caption{\footnotesize (a)}
+    \vspace{-12pt}
+    \begin{tabular}[t]{|l|l|r|r|}
+        \hline
+        Param. & bps & Size (MiB) & Comp. (\%) \\
+         \hline
+        baseline & 16 & 67.85 & 100.00 \\
+        32 & 7.288 & 30.91 & 45.55 \\
+        128 & 6.069 & 25.74 & 37.93 \\
+        512 & 5.761 & 24.43 & 36.01 \\
+        \hline
+    \end{tabular}
+    \end{subtable}%
+    \begin{subtable}[t]{.48\linewidth}
+    \vspace{-12pt}
+    \caption{\footnotesize (b)}
+    \vspace{-12pt}
+    \begin{tabular}[t]{|l|l|r|r|}
+        \hline
+        Param. & bps & Size (MiB) & Comp. (\%) \\
+         \hline
+        baseline & 14 & 42.68 & 100.00 \\
+        RG32 & 14.438 & 44.02 & 103.13 \\
+        RG32 & 13.478 & 41.09 & 96.27 \\
+        RG64 & 12.79 & 38.99 & 91.36 \\
+        RG128 & 12.446 & 37.94 & 88.90 \\
+        \hline
+    \end{tabular}
+    \end{subtable}
+\end{table}
+
+\begin{table}
+    \caption{Space requirements for the CSA (a), the WMJ (b) and the WML (c) from \ctr}
+    \begin{subtable}[t]{.48\linewidth}
+    \vspace{-12pt}
+    \caption{\footnotesize (a)}
+    \vspace{-12pt}
+    \begin{tabular}[t]{|l|l|r|r|}
+        \hline
+        Param. & bps & Size (MiB) & Comp. (\%) \\
+         \hline
+        baseline & 14 & 59.37 & 100.00 \\
+        32 & 6.956 & 29.50 & 49.69 \\
+        128 & 5.727 & 24.29 & 40.91 \\
+        512 & 5.417 & 22.97 & 38.69 \\
+        \hline
+    \end{tabular}
+    \end{subtable}
+    \begin{subtable}[t]{.48\linewidth}
+    \vspace{-12pt}
+    \caption{\footnotesize (b)}
+    \vspace{-12pt}
+    \begin{tabular}[t]{|l|l|r|r|}
+        \hline
+        Param. & bps & Size (MiB) & Comp. (\%) \\
+         \hline
+        baseline & 14 & 59.37 & 100.00 \\
+        RG32 & 14.438 & 61.23 & 103.13 \\
+        RG32 & 13.419 & 56.91 & 95.85 \\
+        RG64 & 12.732 & 53.99 & 90.94 \\
+        RG128 & 12.388 & 52.53 & 88.49 \\
+        \hline
+    \end{tabular}
+    \end{subtable}
+    \begin{subtable}[t]{.48\linewidth}
+    \vspace{-12pt}
+    \caption{\footnotesize (c)}
+    \vspace{-12pt}
+    \begin{tabular}[t]{|l|l|r|r|}
+        \hline
+        Param. & bps & Size (MiB) & Comp. (\%) \\
+         \hline
+        baseline & 14 & 59.37 & 100.00 \\
+        RG32 & 14.438 & 61.23 & 103.13 \\
+        RG32 & 13.419 & 56.91 & 95.85 \\
+        RG64 & 12.732 & 53.99 & 90.94 \\
+        RG128 & 12.388 & 52.53 & 88.49 \\
+        \hline
+    \end{tabular}
+    \end{subtable}%
+\end{table}
 
 \subsection{Query performance}
-Missing a comparison of \acumm vs \ttctr!
+Missing a comparison of \acumm~vs \ttctr!
 
 \begin{figure}[hbt!]
 \includegraphics[width=0.5\textwidth]{experiments/board.eps}
