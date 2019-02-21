@@ -19,7 +19,8 @@
 \usepackage{threeparttable}
 
 \newcommand{\acumm}{T-Matrices} % T is for Total!
-\newcommand{\ctr}{NewCTR (name subject to change)\ }
+\newcommand{\ctr}{XCTR}
+\newcommand{\ttctr}{TTCTR}
 \newcommand{\ctrq}{NCTRc}
 
 \begin{document}
@@ -272,7 +273,7 @@ A user trip can be represented by the stops from the transportation system that 
 
 \begin{figure}[hbt!]
 \includegraphics[width=\textwidth]{example_trips.eps}
-\caption{An example of five trips represented on \ctr with the optimizations for \texttt{WML} and \texttt{WMJ}, and sections for each stop delimited by dotted lines}
+\caption{An example of five trips represented on \ctr~with the optimizations for \texttt{WML} and \texttt{WMJ}, and sections for each stop delimited by dotted lines}
 \label{fig:example_ctr}
 \end{figure}
 
@@ -310,11 +311,11 @@ As \ctr is a complete representation of the collection of trips, we are able to 
  \Return{\trip}\;
  }
  
- \caption{Extracting the trip \DataSty{i} from \ctr where \FuncSty{CSA}, \FuncSty{WML} and \FuncSty{WMJ} are the structures previously described in (i), (ii) and (iii), respectively}
+ \caption{Extracting the trip \DataSty{i} from \ctr, where \FuncSty{CSA}, \FuncSty{WML} and \FuncSty{WMJ} are the structures previously described in (i), (ii) and (iii), respectively}
  \label{alg:extract}
 \end{algorithm}
 
-A more complex query that we can solve with \ctr is ``number of trips that started from a stop \DataSty{s$_a$} and ended at a stop \DataSty{s$_z$}'', which can be further restricted to specific starting and ending lines and a time window. The pseudocode for the full version of such query can be found at the Algorithm~\ref{alg:xy}. This algorithm relies heavily on the abstract function \FuncSty{GetRange}, which when applied to a CSA, delimits the range of entries of $\Psi$ that match a queried string pattern, while on a WM it works as the $range$ operation defined in Section~\ref{sec:wm}, also reporting the range in the last level of a WM corresponding to the entries of a single queried symbol within a range in the encoded sequence (equivalent to two \FuncSty{TrackDown} operations on the first and last occurrence of the queried symbol, but more time efficient).
+A more complex query that we can solve with \ctr~is ``number of trips that started from a stop \DataSty{s$_a$} and ended at a stop \DataSty{s$_z$}'', which can be further restricted to specific starting and ending lines and a time window. The pseudocode for the full version of such query can be found at the Algorithm~\ref{alg:xy}. This algorithm relies heavily on the abstract function \FuncSty{GetRange}, which when applied to a CSA, delimits the range of entries of $\Psi$ that match a queried string pattern, while on a WM it works as the $range$ operation defined in Section~\ref{sec:wm}, also reporting the range in the last level of a WM corresponding to the entries of a single queried symbol within a range in the encoded sequence (equivalent to two \FuncSty{TrackDown} operations on the first and last occurrence of the queried symbol, but more time efficient).
 
 \begin{algorithm}[hbt!]
 \SetKwData{la}{$l_a$}\SetKwData{lz}{$l_z$}\SetKwData{sa}{s$_a$}\SetKwData{sz}{s$_z$}\SetKwData{ta}{t$_a$}\SetKwData{tz}{t$_z$}\SetKwData{pattern}{pattern}\SetKwData{left}{left}\SetKwData{right}{right}\SetKwData{csa}{CSA}\SetKwData{wmj}{WMJ}\SetKwData{leftzero}{left$_0$}\SetKwData{rightzero}{right$_0$}\SetKwData{a}{a}\SetKwData{z}{z}\SetKwData{ja}{j$_a$}\SetKwData{jz}{j$_z$}\SetKwData{n}{n}\SetKwData{ap}{a'}\SetKwData{zp}{z'}\SetKwData{offset}{offset}
@@ -353,7 +354,7 @@ We will now proceed to explain the Algorithm~\ref{alg:xy} line by line:
     
     \item In \textbf{lines 4-6} we obtain the corresponding range in the section of $\$$ by accessing \FuncSty{$\Psi$}. Note that because of how the sorting of the $\$$ symbols was altered during the construction of the suffix array, these two ranges are equal in size, as the comment in line 6 points out.
     
-    \item In \textbf{line 7} we query \texttt{WML} in the $\$$ section, within the range previously obtained, for the queried starting line \DataSty{l$_a$}, obtaining the range of its occurrences in the last level, delimited by \DataSty{a} and \DataSty{z}. Note that if the \ctr was constructed without the optimization that separates \texttt{WML} in sections, this line would be exactly the same, save for the query being on a \DataSty{WML} that would encode the whole sequence of lines instead of just the \DataSty{WML}{(0)} for $\$$.
+    \item In \textbf{line 7} we query \texttt{WML} in the $\$$ section, within the range previously obtained, for the queried starting line \DataSty{l$_a$}, obtaining the range of its occurrences in the last level, delimited by \DataSty{a} and \DataSty{z}. Note that if the \ctr~was constructed without the optimization that separates \texttt{WML} in sections, this line would be exactly the same, save for the query being on a \DataSty{WML} that would encode the whole sequence of lines instead of just the \DataSty{WML}{(0)} for $\$$.
     
     \item In \textbf{line 8} we obtain the range of jcodes for the journeys from the line \DataSty{l$_a$} that would pass through the stop \DataSty{s$_a$} within the time window delimited by \DataSty{t$_a$} and \DataSty{t$_z$}, using the function \FuncSty{GetJCodes} from Algorithm~\ref{alg:jcodes}.
     
@@ -372,14 +373,14 @@ We will now proceed to explain the Algorithm~\ref{alg:xy} line by line:
 
 It is trivial to reuse the Algorithm~\ref{alg:xy} to answer queries with less constrains. For example, if we were only interested in restricting the starting line, we could return \DataSty{z}-\DataSty{a} after line 7. Or if we only wanted to restrict the ending line and time, we can do it by skipping the lines 4-12, and using directly \FuncSty{GetRange}{(\FuncSty{WML}{(s$_z$)},left-offset,right-offset,l$_z$)} in line 14. The complexity would increase if we restricted by a time window but not by lines, as would need to iterate through all possible lines for \DataSty{s$_a$} and \DataSty{s$_z$} to obtain the jcodes for each line and perform these operations on \texttt{WML} and \texttt{WMJ}. Fortunately, the number of lines that a single stop can belong to tends to be rather small in practice, thus with a careful implementation that avoids repeating computation the performance of such query scales well, as will be shown later in Section~\ref{sec:exp}. Finally, to obtain only the trips that started on a given stop we would simply need to set \DataSty{pattern} to $\{0,s_a\}$ in line 2, or alternatively to $\{s_z,0\}$ for the final stop, and skipping the operations on the sections of \DataSty{s$_z$} or $\$$, respectively.
 
-Of course, \ctr can also be used to efficiently obtain other interesting information about trips, such as the top k most boarded stops, as shown in \cite{brisaboa2018compact}, with the additional possibility of differentiating stops that are only used to switch lines in \ctr. However, there is no known way of using this representation to obtain other kinds of information efficiently (e.g. the number of passengers in a journey between two stops).
+Of course, \ctr~can also be used to efficiently obtain other interesting information about trips, such as the top k most boarded stops, as shown in \cite{brisaboa2018compact}, with the additional possibility of differentiating stops that are only used to switch lines in \ctr. However, there is no known way of using this representation to obtain other kinds of information efficiently (e.g. the number of passengers in a journey between two stops).
 
 \subsection{Comparing \acumm and \ctr}
 \label{sec:comp}
 Better show this after they have been both explained... \marginpar{\tiny Include TTCTR in the table}
 
 \begin{threeparttable}
-\caption{Efficiency of \acumm~and \ctr against the queries described in Section~\ref{sec:rq}}
+\caption{Efficiency of \acumm~and \ctr~against the queries described in Section~\ref{sec:rq}}
 \label{tab:queries}
 \begin{tabular}{|l|l|l|}
 \hline
@@ -424,19 +425,28 @@ Before explaining the details of how each of these operations would be implement
     \item \texttt{end\_X$_{LT}$} Can only be solved in \ctr, by delimiting the range for the pattern $X\$$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed.
     \item \texttt{switch\_X$_{LT}$} Calculated as board\_X$_{LT}$ - start\_X$_{LT}$.
     \item \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} Explained in detail in Algorithm~\ref{alg:xy}.
-    \item \texttt{board\_L$_T$} Straightforward in \acumm, as it only needs to access one matrix. While in \ctr the total number of occurences of line L can be calculated in one $O(log|L|)$ operation (with additional filtering through \FuncSty{WMJ} if needed), we need to subtract the occurrences of start\_L$_T$ and end\_L$_T$, the later having a greater complexity of $O(|S| \times \ctrq)$.
-    \item \texttt{alight\_L$_T$} Can be approximated in \ctr with board\_L$_T$, given that every user that boards on a line is expected to alight from it within a reasonable time.
+    \item \texttt{board\_L$_T$} Straightforward in \acumm, as it only needs to access one matrix. While in \ctr~the total number of occurences of line L can be calculated in one $O(log|L|)$ operation (with additional filtering through \FuncSty{WMJ} if needed), we need to subtract the occurrences of start\_L$_T$ and end\_L$_T$, the later having a greater complexity of $O(|S| \times \ctrq)$.
+    \item \texttt{alight\_L$_T$} Can be approximated in \ctr~with board\_L$_T$, given that every user that boards on a line is expected to alight from it within a reasonable time.
     \item \texttt{start\_L$_T$} Can only be solved in \ctr, by filtering down \FuncSty{WML} and \FuncSty{WMJ}, if needed, over the $\$$ section of the \FuncSty{CSA}.
     \item \texttt{end\_L$_T$} Can only be solved in \ctr, by performing a end\_X$_{LT}$ for every X from the line L.
-    \item \texttt{board\_T} and \texttt{alight\_T} Although \acumm~and \ctr could solve it by applying board\_L$_T$ $|L|$ times, this would imply a prohibitive cost for \ctr, where extracting all the trips would be preferred in practice.
-    \item \texttt{start\_T} Solved in the \ctr by applying \texttt{start\_X$_{LT}$} $|L|$ times.
+    \item \texttt{board\_T} and \texttt{alight\_T} Although \acumm~and \ctr~could solve it by applying board\_L$_T$ $|L|$ times, this would imply a prohibitive cost for \ctr, where extracting all the trips would be preferred in practice.
+    \item \texttt{start\_T} Solved in the \ctr~by applying \texttt{start\_X$_{LT}$} $|L|$ times.
     \item \texttt{end\_T} Neither of our representations can solve this query efficiently, although it could be approximated by \texttt{start\_T} in CTR.
     \item \texttt{load\_X$_{LT}$} This can be easily calculated in \acumm~as detailed in Section~\ref{sec:acumm}. \marginpar{Tirso please explain how!}
 \end{itemize}
 
 \section{Experiments}
 \label{sec:exp}
-For space, I propose to compare with our previous structures and with a plain representation using bits per symbol (bps). Otherwise, the baseline we select for our $\%$ can be misleading.
+In this section we discuss the practical performance of our structures. To evaluate them, we have run randomly generated queries against \acumm, \ttctr~and \ctr, with multiple configurations (TODO: describe configurations).
+
+\subsection{Experimental dataset}
+Write about the generation of Madrid dataset from real bus journeys.
+
+\subsection{Space requirments}
+Missing space tables with total size, compression and bps!
+
+\subsection{Query performance}
+Missing a comparison of \acumm vs \ttctr!
 
 \begin{figure}[hbt!]
 \includegraphics[width=0.5\textwidth]{experiments/board.eps}
@@ -460,8 +470,6 @@ For space, I propose to compare with our previous structures and with a plain re
 \includegraphics[width=0.495\textwidth]{experiments/xy3.eps}
 \caption{Comparison of \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} queries, variating line (left) and starting time (right) restrictions with a fixed ending time restriction}
 \end{figure}
-
-For time, we will compare against SPIRE 2018, and maybe, IF WE HAVE TIME, with a plain postgresql baseline. Experiments will be executed in Compostela2 or whatever we'll have available.
 
 \section{Conclusions}
 Speak about how cool would it be to have a single structure that could to it all. Pitch for our next paper with Gonzalo!
