@@ -400,7 +400,7 @@ Query &  \acumm & \ctr\\
 \texttt{end\_L$_T$} & - & $O(|S| \times \ctrq)$\tnote{be} \\
 \texttt{board\_T} & $O(|L|)$\tnote{f} & Hard\tnote{d} \\
 \texttt{alight\_T} & $O(|L|)$\tnote{f} & Hard\tnote{cd} \\
-\texttt{start\_T} & - & $O(|L| \times log(|L|\times\bar{|J^l|}))$\tnote{fg} \\
+\texttt{start\_T} & - & $O(|L| \times log(|L|\times\bar{|J^l|}))$\tnote{fg}~~ \\
 \texttt{end\_T} & - & Hard\tnote{d} \\
 \texttt{load\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} \\
 \hline
@@ -439,10 +439,19 @@ Before explaining the details of how each of these operations would be implement
 
 \section{Experiments}
 \label{sec:exp}
-In this section we discuss the practical performance of our structures. To evaluate them, we have run randomly generated queries against \acumm, \ttctr~and \ctr, with multiple configurations (TODO: describe configurations).
+In this section we discuss the practical performance of our structures. To evaluate them, we have run randomly generated queries against \acumm, \ttctr~and \ctr, with several configurations to study the trade-off between compression and query efficiency. For the \texttt{CSA} structures from \ttctr~and \ctr, we experiment with the $t_\Psi$ (sampling interval) factors of 32, 128 and 512. For the \texttt{WM} present in \ttctr, as well as in the two \texttt{WM} from \ctr, we analyze the compression achieved with the RRR bitvector described in \cite{Raman:2002:SID:545381.545411}, using block sizes of 32, 64 and 128, and compare it against a plain bitvector with a rank structure. \marginpar{\tiny Do we have any similar trade-off for \acumm?}
 
 \subsection{Experimental dataset}
-Write about the generation of Madrid dataset from real bus journeys.
+Using real GTFS descriptions of bus routes and schedules, we generated a synthetic dataset of user trips that aims to realistically imitate real user behaviour over a month. In this work, we combined the GTFS obtained for the networks of urban\footnote{\url{http://www.emtmadrid.es}} and interurban\footnote{\url{http://www.crtm.es}} buses for the city of Madrid. My head hurts right now, but the steps to generate user trips are:
+
+\begin{enumerate}
+    \item Extract stops an lines. A reversed direction makes a new line.
+    \item Connect stops that are on walking distance (100 meters) from each other, or appear sequentially on the same line.
+    \item Parse the schedules for bus trips.
+    \item Generate a month of journeys from the schedules. This is used both to generate user trips and to build our common structures.
+    \item Generate user trips starting from a random stop and with a binomial distribution for switching lines, where the user is allowed to wait up to 30 minutes.
+    \item Profit.
+\end{enumerate}
 
 \subsection{Space requirments}
 Discuss why we are getting these sizes, and compare. Missing \acumm~sizes!
@@ -486,9 +495,9 @@ Discuss why we are getting these sizes, and compare. Missing \acumm~sizes!
          \hline
         baseline & 14 & 42.68 & 100.00 \\
         RG32 & 14.438 & 44.02 & 103.13 \\
-        RG32 & 13.478 & 41.09 & 96.27 \\
-        RG64 & 12.79 & 38.99 & 91.36 \\
-        RG128 & 12.446 & 37.94 & 88.90 \\
+        RRR32 & 13.478 & 41.09 & 96.27 \\
+        RRR64 & 12.79 & 38.99 & 91.36 \\
+        RRR128 & 12.446 & 37.94 & 88.90 \\
         \hline
     \end{tabular}
     \end{subtable}
@@ -521,9 +530,9 @@ Discuss why we are getting these sizes, and compare. Missing \acumm~sizes!
          \hline
         baseline & 14 & 59.37 & 100.00 \\
         RG32 & 14.438 & 61.23 & 103.13 \\
-        RG32 & 13.419 & 56.91 & 95.85 \\
-        RG64 & 12.732 & 53.99 & 90.94 \\
-        RG128 & 12.388 & 52.53 & 88.49 \\
+        RRR32 & 13.419 & 56.91 & 95.85 \\
+        RRR64 & 12.732 & 53.99 & 90.94 \\
+        RRR128 & 12.388 & 52.53 & 88.49 \\
         \hline
     \end{tabular}
     \end{subtable}
@@ -537,9 +546,9 @@ Discuss why we are getting these sizes, and compare. Missing \acumm~sizes!
          \hline
         baseline & 14 & 59.37 & 100.00 \\
         RG32 & 14.438 & 61.23 & 103.13 \\
-        RG32 & 13.419 & 56.91 & 95.85 \\
-        RG64 & 12.732 & 53.99 & 90.94 \\
-        RG128 & 12.388 & 52.53 & 88.49 \\
+        RRR32 & 13.419 & 56.91 & 95.85 \\
+        RRR64 & 12.732 & 53.99 & 90.94 \\
+        RRR128 & 12.388 & 52.53 & 88.49 \\
         \hline
     \end{tabular}
     \end{subtable}%
