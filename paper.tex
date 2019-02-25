@@ -442,16 +442,18 @@ Before explaining the details of how each of these operations would be implement
 In this section we discuss the practical performance of our structures. To evaluate them, we have run randomly generated queries against \acumm, \ttctr~and \ctr, with several configurations to study the trade-off between compression and query efficiency. For the \texttt{CSA} structures from \ttctr~and \ctr, we experiment with the $t_\Psi$ (sampling interval) factors of 32, 128 and 512. For the \texttt{WM} present in \ttctr, as well as in the two \texttt{WM} from \ctr, we analyze the compression achieved with the RRR bitvector described in \cite{Raman:2002:SID:545381.545411}, using block sizes of 32, 64 and 128, and compare it against a plain bitvector with a rank structure. \marginpar{\tiny Do we have any similar trade-off for \acumm?}
 
 \subsection{Experimental dataset}
-Using real GTFS descriptions of bus routes and schedules, we generated a synthetic dataset of user trips that aims to realistically imitate real user behaviour over a month. In this work, we combined the GTFS obtained for the networks of urban\footnote{\url{http://www.emtmadrid.es}} and interurban\footnote{\url{http://www.crtm.es}} buses for the city of Madrid. My head hurts right now, but the steps to generate user trips are:
+Using real GTFS\footnote{\url{https://developers.google.com/transit/gtfs/}} descriptions of bus routes and schedules, we generated a synthetic dataset of user trips that aims to realistically imitate real user behaviour over a month. In this work, we combined the GTFS obtained for the networks of urban\footnote{Provided by EMT \url{http://www.emtmadrid.es}} and interurban\footnote{Provided by CRTM \url{http://www.crtm.es}} buses for the city of Madrid. The network model is extracted and user trips are generated with the following general steps:
 
 \begin{enumerate}
-    \item Extract stops an lines. A reversed direction makes a new line.
-    \item Connect stops that are on walking distance (100 meters) from each other, or appear sequentially on the same line.
+    \item Parse stop, route and trip identifiers. This usually produces two lines per route, one for each direction. With this we are able to build the common structures $lineStop$ and $stopLine$.
+    \item Connect stops that are on a short walking distance (100 meters) from each other, or appear sequentially on the same line.
     \item Parse the schedules for bus trips.
-    \item Generate a month of journeys from the schedules. This is used both to generate user trips and to build our common structures.
-    \item Generate user trips starting from a random stop and with a binomial distribution for switching lines, where the user is allowed to wait up to 30 minutes.
-    \item Profit.
+    \item Generate a month of journeys from the schedules, differentiating days of week. From this we compute $avgTime$ and $initialTime$.
+    \item Generate user trips. A trip starts from a random stop, day and journey and simulates boarding that journey and traversing it. After each traversed stop, the user may end the trip with a probability that starts at zero and increases by 1\% for every stop visited. Additionally, there is a fixed probability of attempting to switch lines at the current stop, if there is a journey available at that stop within the allowed waiting time (30 minutes) and from a different line (the reverse of the current line is also disallowed). Switching lines is also attempted when the end of the current line is reached.
+    \item We persist these generated trips as sequences of stages \\ $<<line,journey,boarding\_stop>, <line,journey,alighting\_stop>>$,\\ where a boarding and alighting stop naturally share the same line and journey within the same stage. This results in the same number of stages as lines have been used. With the parameters used, about 56\% of our trips have one stage, 33\% have two, 9\% have three and 2\% have four.
 \end{enumerate}
+
+With this approach we have generated a dataset of ten million trips, over a real network consisting of 11021 stops, 1048 lines for a simulated month, with an average of 1622 journeys per line and a maximum of 9980. We consider that this synthetic dataset is of enough accuracy and size to obtain significant results when studying the compression capabilities and performance of our representations.
 
 \subsection{Space requirments}
 Discuss why we are getting these sizes, and compare. Missing \acumm~sizes!
