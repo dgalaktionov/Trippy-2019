@@ -215,6 +215,7 @@ The following is a non-comprehensive list of query types that can be efficiently
 As of today, we are not aware of any indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{sec:rq}. For this reason, we propose two data structures, \acumm~and~\ctr. The former is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B.
 
 \subsection{Common Structures}
+\label{sec:cs}
 Both \acumm~and \ctr~need a network representation to be operated, along with information about the transport vehicle journeys. Therefore, the following structures represent a network with stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
 
 \begin{itemize}
@@ -439,9 +440,10 @@ Before explaining the details of how each of these operations would be implement
 
 \section{Experiments}
 \label{sec:exp}
-In this section we discuss the practical performance of our structures. To evaluate them, we have run randomly generated queries against \acumm, \ttctr~and \ctr, with several configurations to study the trade-off between compression and query efficiency. For the \texttt{CSA} structures from \ttctr~and \ctr, we experiment with the $t_\Psi$ (sampling interval) factors of 32, 128 and 512. For the \texttt{WM} present in \ttctr, as well as in the two \texttt{WM} from \ctr, we analyze the compression achieved with the RRR bitvector described in \cite{Raman:2002:SID:545381.545411}, using block sizes of 32, 64 and 128, and compare it against a plain bitvector with a rank structure. \marginpar{\tiny Do we have any similar trade-off for \acumm?}
+In this section we discuss the practical performance of our structures. To evaluate them, we have run randomly generated queries against \acumm, \ttctr~and \ctr built over a dataset of user trips over a real transportation network (Section~\ref{sec:data}), with several configurations to study the trade-off between compression (Section~\ref{sec:space}) and query efficiency (Section~\ref{sec:time}), using different configurations for each individual structure.
 
 \subsection{Experimental dataset}
+\label{sec:data}
 Using real GTFS\footnote{\url{https://developers.google.com/transit/gtfs/}} descriptions of bus routes and schedules, we generated a synthetic dataset of user trips that aims to realistically imitate real user behaviour over a month. In this work, we combined the GTFS obtained for the networks of urban\footnote{Provided by EMT \url{http://www.emtmadrid.es}} and interurban\footnote{Provided by CRTM \url{http://www.crtm.es}} buses for the city of Madrid. The network model is extracted and user trips are generated with the following general steps:
 
 \begin{enumerate}
@@ -449,18 +451,24 @@ Using real GTFS\footnote{\url{https://developers.google.com/transit/gtfs/}} desc
     \item Connect stops that are on a short walking distance (100 meters) from each other, or appear sequentially on the same line.
     \item Parse the schedules for bus trips.
     \item Generate a month of journeys from the schedules, differentiating days of week. From this we compute $avgTime$ and $initialTime$.
-    \item Generate user trips. A trip starts from a random stop, day and journey and simulates boarding that journey and traversing it. After each traversed stop, the user may end the trip with a probability that starts at zero and increases by 1\% for every stop visited. Additionally, there is a fixed probability of attempting to switch lines at the current stop, if there is a journey available at that stop within the allowed waiting time (30 minutes) and from a different line (the reverse of the current line is also disallowed). Switching lines is also attempted when the end of the current line is reached.
+    \item Generate user trips. A trip starts from a random stop, day and journey and simulates boarding that journey and traversing it. After each traversed stop, the user may end the trip with a probability that starts at zero and increases by 1\% for every stop visited. Additionally, there is a fixed probability of attempting to switch lines at the current stop, if there is a journey available at that stop within the allowed waiting time (30 minutes) and from a different line\footnote{the reverse of the current line is also disallowed}. Switching lines is also attempted when the end of the current line is reached.
     \item We persist these generated trips as sequences of stages \\ $<<line,journey,boarding\_stop>, <line,journey,alighting\_stop>>$,\\ where a boarding and alighting stop naturally share the same line and journey within the same stage. This results in the same number of stages as lines have been used. With the parameters used, about 56\% of our trips have one stage, 33\% have two, 9\% have three and 2\% have four.
 \end{enumerate}
 
-With this approach we have generated a dataset of ten million trips, over a real network consisting of 11021 stops, 1048 lines for a simulated month, with an average of 1622 journeys per line and a maximum of 9980. We consider that this synthetic dataset is of enough accuracy and size to obtain significant results when studying the compression capabilities and performance of our representations.
+With this approach we have generated a dataset of ten million trips, over a real network consisting of 11021 stops, 1048 lines for a simulated month\footnote{A period of 31 days, starting with a Monday}, with an average of 1622 journeys per line and a maximum of 9980. We consider that this synthetic dataset is of enough accuracy and size to obtain significant results when studying the compression capabilities and performance of our representations.
 
-\subsection{Space requirments}
-Discuss why we are getting these sizes, and compare. Missing \acumm~sizes!
+\subsection{Space requirements}
+\label{sec:space}
+We have measured the sizes of all the individual components of our representation in memory when built over the experimental dataset. We present the sizes of our common structures, followed by the \acumm\marginpar{Missing \acumm~sizes!}. After that, we compare the compression achieved with \ttctr~and \ctr.
+
+For the \texttt{CSA} structures from \ttctr~and \ctr, we experiment with the $t_\Psi$ (sampling interval) factors of 32, 128 and 512. For the \texttt{WM} present in \ttctr, as well as in the two \texttt{WM} from \ctr, we analyze the compression achieved with the \texttt{RRR} bitvector described in \cite{Raman:2002:SID:545381.545411}, using block sizes of 32, 64 and 128, and compare it against a plain bitvector with a rank structure, which we call \texttt{RG32}. \marginpar{\tiny Do we have any similar trade-off for \acumm?}
+
+The space occupied by the common structures is reflected in Table~\ref{tab:commons}. These were represented using plain fixed bit length integers with the exception of $initialTime$, where we used the compression approach discussed in Section~\ref{sec:cs}. This has allowed us to represent all required network information in a negligible space of less than 1 MiB.
 
 \begin{table}
     \centering
     \caption{Sizes of the common structures}
+    \label{tab:commons}
     \begin{tabular}{|c|c|c|c|c|c|}
     \hline
         Structure & $lineStop$ & $stopLine$ & $avgTime$ & $initialTime$ & Total \\
@@ -470,15 +478,18 @@ Discuss why we are getting these sizes, and compare. Missing \acumm~sizes!
     \end{tabular}
 \end{table}
 
+In Table~\ref{tab:ttctr} we analyze the space occupied by the two structures of \ttctr: a \texttt{CSA} that encodes stops and their lines, and a \texttt{WM} that encodes journey codes.
+
 \begin{table}
-    \caption{Space requirements for the CSA (a) and the WM (b) from \ttctr}
+    \caption{Space requirements for the \texttt{CSA} (a) and the \texttt{WM} (b) from \ttctr}
+    \label{tab:ttctr}
     \begin{subtable}[t]{.48\linewidth}
     \vspace{-12pt}
     \caption{\footnotesize (a)}
     \vspace{-12pt}
     \begin{tabular}[t]{|l|l|r|r|}
         \hline
-        Param. & bps & Size (MiB) & Comp. (\%) \\
+        t$_\Psi$ & bps & Size (MiB) & Comp. (\%) \\
          \hline
         baseline & 16 & 67.85 & 100.00 \\
         32 & 7.288 & 30.91 & 45.55 \\
@@ -493,7 +504,7 @@ Discuss why we are getting these sizes, and compare. Missing \acumm~sizes!
     \vspace{-12pt}
     \begin{tabular}[t]{|l|l|r|r|}
         \hline
-        Param. & bps & Size (MiB) & Comp. (\%) \\
+        Bitvector & bps & Size (MiB) & Comp. (\%) \\
          \hline
         baseline & 14 & 42.68 & 100.00 \\
         RG32 & 14.438 & 44.02 & 103.13 \\
@@ -505,15 +516,22 @@ Discuss why we are getting these sizes, and compare. Missing \acumm~sizes!
     \end{subtable}
 \end{table}
 
+The baseline used for the \texttt{CSA} is a plain representation of the sequence encoded by the \texttt{CSA}, omitting the cost of a dictionary to filter nonexistent combinations of lines and stops. Even when compared to this compact baseline, the \texttt{CSA} is able to achieve remarkable compression rates, as it captures the repetitiveness of trips when constrained to our network of bus lines.
+
+We were not able to achieve such compression rates for the \texttt{WM}, where compressing the bitvectors with \texttt{RRR} results in a \texttt{WM} that is only slightly smaller than the baseline plain representation of all journey codes. This sequence is indeed hard to compress, given than it was rearranged to be aligned to the entries of our \texttt{CSA}, which nullifies any local redundancy that other kinds of arrangements may obtain.
+
+We also measured the occupied space of \ctr~in Table~\ref{tab:ctr}, where three structures must be taken in consideration: a \texttt{CSA} that only encodes stop identifiers, and two \texttt{WM}: one for line identifiers (\texttt{WML}) and one for journey codes (\texttt{WMJ}).
+
 \begin{table}
-    \caption{Space requirements for the CSA (a), the WMJ (b) and the WML (c) from \ctr}
+    \caption{Space requirements for the \texttt{CSA} (a), the \texttt{WMJ} (b) and the \texttt{WML} (c) from \ctr}
+    \label{tab:ctr}
     \begin{subtable}[t]{.48\linewidth}
     \vspace{-12pt}
     \caption{\footnotesize (a)}
     \vspace{-12pt}
     \begin{tabular}[t]{|l|l|r|r|}
         \hline
-        Param. & bps & Size (MiB) & Comp. (\%) \\
+        t$_\Psi$ & bps & Size (MiB) & Comp. (\%) \\
          \hline
         baseline & 14 & 59.37 & 100.00 \\
         32 & 6.956 & 29.50 & 49.69 \\
@@ -528,7 +546,7 @@ Discuss why we are getting these sizes, and compare. Missing \acumm~sizes!
     \vspace{-12pt}
     \begin{tabular}[t]{|l|l|r|r|}
         \hline
-        Param. & bps & Size (MiB) & Comp. (\%) \\
+        Bitvector & bps & Size (MiB) & Comp. (\%) \\
          \hline
         baseline & 14 & 59.37 & 100.00 \\
         RG32 & 14.438 & 61.23 & 103.13 \\
@@ -544,19 +562,26 @@ Discuss why we are getting these sizes, and compare. Missing \acumm~sizes!
     \vspace{-12pt}
     \begin{tabular}[t]{|l|l|r|r|}
         \hline
-        Param. & bps & Size (MiB) & Comp. (\%) \\
+        Bitvector & bps & Size (MiB) & Comp. (\%) \\
          \hline
-        baseline & 14 & 59.37 & 100.00 \\
-        RG32 & 14.438 & 61.23 & 103.13 \\
-        RRR32 & 13.419 & 56.91 & 95.85 \\
-        RRR64 & 12.732 & 53.99 & 90.94 \\
-        RRR128 & 12.388 & 52.53 & 88.49 \\
+        baseline & 11 & 46.65 & 100.00 \\
+        RG32 & 4.778 & 20.26 & 43.44 \\
+        RG32 & 2.338 & 9.91 & 21.25 \\
+        RG64 & 2.18 & 9.24 & 19.82 \\
+        RG128 & 2.103 & 8.92 & 19.12 \\
         \hline
     \end{tabular}
     \end{subtable}%
 \end{table}
 
+When comparing to the structures of \ttctr, we can observe a marginally better compression of \texttt{WMJ} of \ctr~than the one of the \texttt{WM} from \ttctr, due to the journey codes being grouped differently.
+
+Although the \texttt{CSA} is slightly smaller in \ctr, the compression ratios are worse than the ones in \ttctr~when we compare to a smaller baseline that only represents the sequence of stops, with no information about lines. Even at the sparsest sample rate of 512, the compression ratio of the \texttt{CSA} in \ctr~is worse than the ratio achieved in \ttctr~with a sample rate of 128.
+
+This difference is accentuated when we consider that we must add the space of \texttt{WML} to \ctr, even though we obtain much better compression than for \texttt{WMJ}. The compression observed with the uncompressed bitvector \texttt{RG32} is due to the optimization discussed in Section~\ref{sec:ctr}, where we keep a separate \texttt{WM} aligned to each stop from the \texttt{CSA}, resulting in much shorter \texttt{WM}s. The further compression achieved with the \texttt{RRR} bitvectors is possible because the stop entries in the \texttt{CSA} are sorted by either the final stop the user alights to or the next stop to board, making the aligned sequence of lines very predictable. Additionally, as our \texttt{CSA} maintains the order of trips from the original text in the $\$$ section, leading to the formation of clusters in the first \texttt{WM}.
+
 \subsection{Query performance}
+\label{sec:time}
 Missing a comparison of \acumm~vs \ttctr!
 
 \begin{figure}[hbt!]
