@@ -584,9 +584,14 @@ This difference is accentuated when we consider that we must add the space of \t
 \label{sec:time}
 Missing a comparison of \acumm~vs \ttctr!
 
+We have implemented the most adequate queries for \ttctr~and \ctr~from those described in Section~\ref{sec:rq}, and measured their average execution time from 100.000 randomly generated queries on [rellenar detalles de Compostela 2]. In this section we will only discuss four of the possible configurations tested for both \ttctr~and \ctr, with t$_{\Psi}$ values of 32 and 512 combining with WM using either uncompressed bitvectors (\texttt{RG32}) or the most compressed (\texttt{RRR128})\footnote{In case of \ctr, this refers to bitvectors from both \texttt{WML} and \texttt{WMJ}}. These four configurations should be adequate enough to illustrate the space-time trade-offs of our approaches, although the execution times for all tested configurations can be found in the Appendix A.
+
+
+
 \begin{figure}[hbt!]
 \includegraphics[width=0.5\textwidth]{experiments/board.eps}
 \caption{Comparison of \texttt{board\_X$_{LT}$} queries, with all variants}
+\label{fig:board}
 \end{figure}
 
 \begin{figure}[hbt!]
@@ -603,6 +608,7 @@ Missing a comparison of \acumm~vs \ttctr!
 \vspace{-12pt}
 \end{subfigure}
 \caption{Comparison of \texttt{start\_X$_{LT}$} (a) and \texttt{end\_X$_{LT}$} (b) queries, with all variants}
+\label{fig:start}
 \end{figure}
 
 \begin{figure}[hbt!]
@@ -619,6 +625,7 @@ Missing a comparison of \acumm~vs \ttctr!
 \vspace{-12pt}
 \end{subfigure}
 \caption{Comparison of \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} queries, variating line (a) and starting time (b) restrictions}
+\label{fig:xy0}
 \end{figure}
 
 \begin{figure}[hbt!]
@@ -635,6 +642,7 @@ Missing a comparison of \acumm~vs \ttctr!
 \vspace{-12pt}
 \end{subfigure}
 \caption{Comparison of \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} queries, variating line (a) and starting time (b) restrictions with a fixed ending time restriction}
+\label{fig:xy2}
 \end{figure}
 
 \section{Conclusions}
@@ -648,5 +656,7 @@ Speak about how cool would it be to have a single structure that could to it all
 
 \bibliographystyle{splncs04}
 \bibliography{refs}
+
+\input{appendix.tex}
 
 \end{document}
