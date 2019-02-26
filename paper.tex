@@ -586,7 +586,7 @@ Missing a comparison of \acumm~vs \ttctr!
 
 We have implemented the most adequate queries for \ttctr~and \ctr~from those described in Section~\ref{sec:rq}, and measured their average execution time from 100.000 randomly generated queries on [rellenar detalles de Compostela 2]. In this section we will only discuss four of the possible configurations tested for both \ttctr~and \ctr, with t$_{\Psi}$ values of 32 and 512 combining with WM using either uncompressed bitvectors (\texttt{RG32}) or the most compressed (\texttt{RRR128})\footnote{In case of \ctr, this refers to bitvectors from both \texttt{WML} and \texttt{WMJ}}. These four configurations should be adequate enough to illustrate the space-time trade-offs of our approaches, although the execution times for all tested configurations can be found in the Appendix A.
 
-We demonstrate the main advantage of \ctr~over the older \ttctr~ in the Figure~\ref{fig:start}.
+We demonstrate the main advantage of \ctr~over the older \ttctr~ in the Figure~\ref{fig:start}b, where restricting a line or a time interval for an \texttt{end\_X} query is prohibitively expensive for \ttctr~ due to its separate vocabulary for final stops, requiring to query the \texttt{CSA} for every possible stop that could have been boarded before X to restrict a line. In the Figure~\ref{fig:start}a it is also possible to see how the performance of \ctr~degrades less with a highly compressed \texttt{CSA} for the query \texttt{start\_X$_T$}, where even queries over a compressed \texttt{WML} are faster than queries over the \texttt{CSA}.
 
 \begin{figure}[hbt!]
 \begin{subfigure}{0.5\linewidth}
@@ -605,6 +605,10 @@ We demonstrate the main advantage of \ctr~over the older \ttctr~ in the Figure~\
 \label{fig:start}
 \end{figure}
 
+Remember that restricting both the line and time is always cheaper than only restricting the time, as for the later more operations need to be performed to filter every line. This explains why $T$ queries are always slower than $LT$ queries. This is true for both representations, with any configuration and query.
+
+We can see more examples of this difference in performance between these two representations with the \texttt{from\_X\_to\_Y} queries in the Figure~\ref{fig:xy0}, whenever the end lines or times are restricted. Additionally, we can yet again observe how using the most sparse sampling of $\Psi$ affects much more the \ttctr~than the \ctr, with the performance of \texttt{from\_X$_{T}$\_to\_Y} consistent with the \texttt{start\_X$_T$} shown in Figure~\ref{fig:start}a.
+
 \begin{figure}[hbt!]
 \begin{subfigure}{0.5\linewidth}
 \includegraphics[width=\linewidth]{experiments/xy0.eps}
@@ -622,6 +626,10 @@ We demonstrate the main advantage of \ctr~over the older \ttctr~ in the Figure~\
 \label{fig:xy0}
 \end{figure}
 
+The performance of both representations can sometimes improve  when more selective restrictions are added, where the execution is cut short when no matching trips are found, before evaluating further restrictions. For this reason, the average times for \texttt{from\_X$_{T}$\_to\_Y$_{L}$} and \texttt{from\_X$_{LT}$\_to\_Y$_{L}$} are shorter than those of \texttt{from\_X\_to\_Y$_{L}$} and \texttt{from\_X$_{L}$\_to\_Y$_{L}$}.
+
+When restricting to the end time, \ctr~consistently outperforms \ttctr, as shown in the Figure~\ref{fig:xy2}. which is to be expected considering the large number of times that the \texttt{CSA} from \ttctr~needs to be queried, yielding results similar to those from the Figure~\ref{fig:start}b where the end time is also restricted.
+
 \begin{figure}[hbt!]
 \begin{subfigure}{0.5\linewidth}
 \includegraphics[width=\linewidth]{experiments/xy2.eps}
@@ -638,6 +646,10 @@ We demonstrate the main advantage of \ctr~over the older \ttctr~ in the Figure~\
 \caption{Comparison of \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} queries, variating line (a) and starting time (b) restrictions with a fixed ending time restriction}
 \label{fig:xy2}
 \end{figure}
+
+The high selectivity of time restrictions explain why \ttctr~appears to become more competitive with the most restrictive queries of Figure~\ref{fig:xy2}b. However, its query time still increases several times when the \texttt{CSA} is highly compressed.
+
+The only query for which \ttctr~is clearly preferred over \ctr~is \texttt{board\_X}, with any restriction, as can be seen in the Figure~\ref{fig:board}. Both for \texttt{board\_X} and \texttt{board\_X$_{L}$}, \ttctr~takes on average less than one microsecond per query, as the only operations needed are two constant time $select$ over the bitvector \texttt{D} from the \texttt{CSA}, while \ctr~needs to subtract the occurrences of $X\$$ (as those are alighting stops, not boarding), for which $\Psi$ must be accessed. This advantage is carried on the queries with time restrictions as well.
 
 \begin{figure}[hbt!]
 \includegraphics[width=0.5\textwidth]{experiments/board.eps}
