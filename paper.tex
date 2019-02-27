@@ -250,9 +250,9 @@ An example of these structures interacting together can be found at the Algorith
 \label{sec:acumm}
 As it has been stated previously in this paper, nowadays it could be relatively simple to gather massive information about user trips in every public transport; however, it is not necessary to store individually each trip. If there are two (or more) commuters sharing the same bus (train/tram/etc), they are also sharing the route, the stops (the time of each stop) and even the network. Therefore, a structure storing the aggregated data of the user trips would be a handy solution to solve (at least) queries of type A presented in section 3.
 
-Thus, we propose the T-Matrix (this is the 3rd name it has), an accumulated solution that involves two-dimensional matrices of integers enabling aggregated queries by row, column, or window/range. In the context of a public trasnportation network, it would by useful to solve flexible line-centered queries; that is, queries that support aggregation by any dimension. Therefore, it could be possible to aggregate either by time-interval (e.g. number of users got on at any stop of the line on 2019/01/02); by stop (e.g. number of commuters that got on a bus at stop S); or by stop and time-interval.
+Thus, we propose the T-Matrix, an accumulated solution that involves two-dimensional matrices of integers enabling aggregated queries by row, column, or window/range. In the context of a public trasnportation network, it would by useful to solve flexible line-centered queries; that is, queries that support aggregation by any dimension. Therefore, it could be possible to aggregate either by time-interval (e.g. number of users got on at any stop of the line on 2019/01/02); by stop (e.g. number of commuters that got on a bus at stop S); or by stop and time-interval.
 
-In a naïve representation, it would only be necessary a two-dimensional matrix having stops as columns and journeys as rows, so each cell would have an integer representing the number of passengers that got on the vehicle at a specific stop in a particular time (journey). The main issue with this approach is that for each query it would be necessary to sum integer by integer each cell of the solution; hence, if we are trying to compute how many people got on a bus in several consecutive sotps during a time interval (several consecutive journeys) it would be necessary to sum all the cells within the matrix that match these journeys and stops.
+In a naïve representation, it would only be necessary a two-dimensional matrix having stops as rows and journeys as columns, so each cell would have an integer representing the number of passengers that got on the vehicle at a specific stop in a particular time (journey). The main issue with this approach is that for each query it would be necessary to sum integer by integer each cell of the solution; hence, if we are trying to compute how many people got on a bus in several consecutive stops during a time interval (several consecutive journeys) it would be necessary to sum all the cells within the matrix that match these journeys and stops.
 
 On the other hand, T-Matrix is based on this naive proposal but instead of storing each cell as a simple integer it assigns an accumulated value to each slot, being the top left cell the smaller number and the bottom right position the cumulative value resulting from adding all the previous cells. Despite having larger numbers in almost every slot of the matrix, this approach allows to apply the dynamic programing formula that follows:
 
@@ -263,6 +263,20 @@ The combination of this operations with our proposed accumulative matrix enables
 EXAMPLE
 
 One simple way of dealing with the growth of numbers in our cumulative solution is just apply a kind of sampling with differences; in this way, a basic example could be keep the middle column m ← (n s + 1)/2 explicitly, and representing the values in the other columns m±k as the difference with respect to column m.
+
+
+
+Taking this simple structure one step further we have built a cumulative matrix with several sampling columns, reducing significantly the size of the structure. Hence, this new cumulativematrix is divided in blocks having n-factor sampling columns, calculating n-factor as a percentage
+of the total number of columns. During the queries real numbers in the matrix are obtained by adding each cell plus the nearest sampling column on the left.
+
+
+
+In order to reach a lighter solution we combined the two last compression techniques building a cumulative matrix sampled by columns which have a centered sampled column in turn. Thus, a value in a cell of the matrix would be obtained adding its value to the value of the nearest sampling column on the left which would be calculted by summing this sampled value to the center column.
+
+
+
+Due to comparison reasons it has been also built these sampled structures using sampling rows instead of sampling columns as it was explained, leading this to the the seven structures that have been used in the experiments of this work: the basic matrix (BASIC), the cumulative matrix (SUM), the cumulative matrix with a central sampling column as reference (DIFF), the cumulative matrix with several sampling columns that divide it in blocks (COL-BLOCK), the COL-BLOCK matrix with a second central sampling (COL-BLOCK-DIFF) and the row version of the last two, ROW-BLOCK AND ROW-BLOCK-DIFF respectively.
+
 
 \subsection{\ttctr}
 Version de spire y despues la variante nueva (\ctr).
