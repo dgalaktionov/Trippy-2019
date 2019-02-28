@@ -279,18 +279,44 @@ Due to comparison reasons it has been also built these sampled structures using 
 
 
 \subsection{\ttctr}
-The \ttctr was introduced in \cite{brisaboa2018new}.
+The \ttctr was introduced in \cite{brisaboa2018new}, where we use a variant of the \texttt{CSA} for integer alphabets to represent the spatial component, i.e. the sequence of pairs $(s_i,l_i)$ that compose each user trip. However, in order to create a \texttt{CSA} we need to assign each pair $(stop,line)$ a unique integer $id$. This will allow us to create an integer sequence $T[1,n]$ (ended by a $\$$  terminator) over which our \texttt{CSA} will be built. For this purpose we create a vocabulary $V$ (with $1+n_s(1+n_l)$ entries)  as follows:
 
-Version de spire y despues la variante nueva (\ctr). \marginpar{\tiny Este ejemplo es complicado de editar, para un ejemplo sobre el nuevo ejemplo habria que hacer uno nuevo...}
+\begin{itemize}
+	\item Entry $V[0]$ is reserved for the terminator symbol $\$$.
+	\item Entries $\langle V[1],V[2], \dots V[n_s]\rangle]$ are associated to stops $\langle 1,2,\dots, n_s\rangle$ and are used to represent the final stops of the trips. That is, when a given stop $x$ ends a user trip, it is given $id \leftarrow x$.
+	\item The last $n_l$$\times$$n_s$ entries are associated to the sequence composed of the pairs $(s,l) \in |S|$$\times$$|L|$ considering that those pairs are sorted by $s$ and $l$ respectively. That is, entry $V[n_s+1]$ is given to $(s,l)=(1,1)$; $V[n_s+2]$ to $(1, 2)$; $V[n_s+3]$ to $(1, 3)$; $\dots$; $V[n_s+n_l]$ to $(1, {n_l})$;  $V[n_s+n_l +1]$ to $(s,l)= (2, 1)$, $V[n_s+n_l +2]$ to $(2, 2)$, and so on. In practice, in this case, the $id/${\em pos-in-V} for a pair $(s,l)$ is obtained as $id \leftarrow  n_s+ n_l(s-1) + l$. 
+\end{itemize}
+
+Note that there will be a large number of unused entries (holes) in $V$. Yet, this can be efficiently handled by a bitvector $B$ with rank/select capabilities 
+that marks the used entries from $V$. Therefore, once we gather the position ($id$) corresponding to a pair $(s,l)$ in $V$, we obtain its final position ($id'$) in a {\em vocabulary without holes} ($V'$) as $id' \leftarrow rank_1(B,id)$. Our $id'$ assignment ensures that the used pairs $(s_i,l)$, corresponding to a given stop $s_i$, receive contiguous $id'$s. This will be interesting at query time.  
+
+The next step encodes the pairs $(stop,line)$ from each user trip with their corresponding $id'$. After each trip, a $0$ ($id'$ for terminator $\$$) is added. That is, a trip with $k$ stages is regarded as a string $s_1s_2\dots s_{k} s_{last} \$$, where $1\leq s_{last} \leq rank_1(B,n_s)$ is the $id'$ of ending stop given to stop $s$.
+
+Once this process has completed, a sequence $T[1,n]$ that contains only values from $V'$ is obtained, and a \texttt{CSA} can be built on $T$. 
+
+In parallel with the construction of $T$, we create a sequence $Jcodes[1,n]$ aligned to $T$ where we set, for each trip the $journey$-$id$ corresponding to each stage. Recall the $journey$-$id$ is the third term from the triples $(s_i,l_i,j_i),~i\in[1,k]$ from a trip. In addition, assuming that $s_p$ contains the $0$ corresponding to the terminator $\$$ for the trip, we set $Jcodes[p]\leftarrow j_1$ (i.e. the same journey-id as  the starting stop of the trip). According to the discussion above, Figure~\ref{fig:ttctr} shows:
+\marginpar{\tiny Este ejemplo es complicado de editar, para un ejemplo sobre el nuevo ejemplo habria que hacer uno nuevo...}
+{\em (step-1)} the sequence of pairs $(stop,line)$ for each trip, and the corresponding $Jcodes$; {\em (step-2)} the vocabularies, including $V$, $B$, and $V'$ (ending stops $s$ of trips do not need the line, therefore we use ``$s\!:\!*$".);\footnote{In this example, with only $5$ trips,  we have only $11$ {\em used pairs} in $V$, but in a real scenario for each stop of each line ({\em existing pair} $(s,l)$) 
+	there will be a $1$ in $B$.} 
+and {\em (step-3)} the structures involved in the creation of \texttt{CSA} from which \ttctr uses $\Psi$, $D$, (and $V'$, $B$).
 
 \begin{figure}[tbhp]
 	%\vspace{-0.2cm}
-    \includegraphics[width=1.00\textwidth]{ttctr_daniil.eps}
+    \includegraphics[width=1.00\textwidth]{ttctr2019.eps}
 	%\vspace{-0.3cm}
 	\caption{Structures involved in the creation of a \ttctr}
 	\label{fig:ttctr}
 	%\vspace{-0.2cm}
 \end{figure}
+
+THIS TIME WE ARE USING TWO TRICKS FOR $\$$: CYCLES AND ORDER PRESERVATION. NEED TO EXPLAIN THEM BOTH HERE INSTEAD OF IN \ctr!
+
+The temporal component of \ttctr includes the sequence $Jcodes$ described above. Recall $Jcodes$ contains $journey$-$ids$ aligned to the values in $T$, and that, for every line $l$ there are $n_j^l$ journeys sorted by their starting time and numbered as $0\dots n_j^l-1$, and also we have average accumulated times to reach each stop in the line. Therefore, this representation allows us to describe exact times for each stop.
+
+In practice, we use $Jcodes^{\Psi}$, which is aligned to $\Psi$ rather than to $T$. See {\em step-4} in Figure~\ref{fig:ttctr}. 
+Note that $Jcodes[8]= 1$ corresponds to $Jcodes^{\Psi}[14]=1$, since $A[14]=8$; 
+          $Jcodes[9]= 2$ corresponds to $Jcodes^{\Psi}[18]=2$, since $A[18]=9$; and so on.
+We represent the sequence $Jcodes^{\Psi}$ with a \texttt{WM}. This provides indexing capabilities to the temporal component and allows us to apply compression techniques.
 
 \subsection{\ctr}
 \label{sec:ctr}
