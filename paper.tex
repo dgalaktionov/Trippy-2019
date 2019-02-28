@@ -139,7 +139,7 @@ The WM is built with $\lceil log_2\sigma\rceil$ levels, each level having a bitv
         \end{array}\right.
 \]
 
-That is, $B_1$ contains all the bits $a_1 \forall a \in S$, in the same order as in S. After that, $B_2$ contains the $a_2$ bits from those $a$ such as $a_1 = 0$ first, followed by those with $a_1 = 1$. That way, all the position of each $a_i$ in $B_i$ depends first by the value of $a_{i-1}$ and later by their position in $B_{i-1}$. Refer to the structures \texttt{WML} and \texttt{WMJ} in Figure~\ref{fig:example_ctr} for examples of one and two-leveled WM. Additionally, there exists a conceptual \textit{leaf level}, that is formed by the final position of every $a$ after applying the recursion on the last level. Because the sorting of each level depends on the values of the previous most significant bits, in the leaf level all symbols are sorted by their reverse representation in bits.
+That is, $B_1$ contains all the bits $a_1 \forall a \in S$, in the same order as in S. After that, $B_2$ contains the $a_2$ bits from those $a$ such as $a_1 = 0$ first, followed by those with $a_1 = 1$. That way, all the position of each $a_i$ in $B_i$ depends first by the value of $a_{i-1}$ and later by their position in $B_{i-1}$. Refer to the structures \texttt{WML} and \texttt{WMJ} in Figure~\ref{fig:example_xctr} for examples of one and two-leveled WM. Additionally, there exists a conceptual \textit{leaf level}, that is formed by the final position of every $a$ after applying the recursion on the last level. Because the sorting of each level depends on the values of the previous most significant bits, in the leaf level all symbols are sorted by their reverse representation in bits.
 
 This structure allows to answer the following operations in $O(log\sigma)$ time:
 \begin{itemize}
@@ -294,11 +294,24 @@ The next step encodes the pairs $(stop,line)$ from each user trip with their cor
 
 Once this process has completed, a sequence $T[1,n]$ that contains only values from $V'$ is obtained, and a \texttt{CSA} can be built on $T$. 
 
+\ttctr~is built first by sorting all trips. If we consider that a trip is composed by $n$ of the $<s_i,l_i,j_i>,~1\leq i\leq n$ triplets previously described, where the first triplet corresponds to the first boarded stop and the last triplet corresponds to the last alighted stop (final destination), then the collection of trips is sorted by the key $s_1,s_n,l_1,j_1$. That is, trips are initially sorted by the first boarded stop identifier. If these are equal, they are then sorted by their last stop identifier, analogously followed by the line identifier and journey code of the first stop. Figure~\ref{fig:example_trips} displays an example of a correct sorting of trips.
+
+\begin{figure}[hbt!]
+\includegraphics[width=0.4\textwidth]{example_trips.eps}
+\caption{An example five trips sorted as required by \ttctr and \ctr}
+\label{fig:example_trips}
+\end{figure}
+
 In parallel with the construction of $T$, we create a sequence $Jcodes[1,n]$ aligned to $T$ where we set, for each trip the $journey$-$id$ corresponding to each stage. Recall the $journey$-$id$ is the third term from the triples $(s_i,l_i,j_i),~i\in[1,k]$ from a trip. In addition, assuming that $s_p$ contains the $0$ corresponding to the terminator $\$$ for the trip, we set $Jcodes[p]\leftarrow j_1$ (i.e. the same journey-id as  the starting stop of the trip). According to the discussion above, Figure~\ref{fig:ttctr} shows:
-\marginpar{\tiny Este ejemplo es complicado de editar, para un ejemplo sobre el nuevo ejemplo habria que hacer uno nuevo...}
 {\em (step-1)} the sequence of pairs $(stop,line)$ for each trip, and the corresponding $Jcodes$; {\em (step-2)} the vocabularies, including $V$, $B$, and $V'$ (ending stops $s$ of trips do not need the line, therefore we use ``$s\!:\!*$".);\footnote{In this example, with only $5$ trips,  we have only $11$ {\em used pairs} in $V$, but in a real scenario for each stop of each line ({\em existing pair} $(s,l)$) 
 	there will be a $1$ in $B$.} 
-and {\em (step-3)} the structures involved in the creation of \texttt{CSA} from which \ttctr uses $\Psi$, $D$, (and $V'$, $B$).
+and {\em (step-3)} the structures involved in the creation of \texttt{CSA} from which \ttctr~uses $\Psi$, $D$, (and $V'$, $B$).
+
+\begin{figure}[hbt!]
+\includegraphics[width=\textwidth]{network.eps}
+\caption{Network representation for the example of \ttctr~from Figure~\ref{fig:ttctr}}
+\label{fig:example_trips_ttctr}
+\end{figure}
 
 \begin{figure}[tbhp]
 	%\vspace{-0.2cm}
@@ -322,20 +335,18 @@ We represent the sequence $Jcodes^{\Psi}$ with a \texttt{WM}. This provides inde
 \label{sec:ctr}
 A user trip can be represented by the stops from the transportation system that were boarded by a user, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. These triplets describe a trip in a consecutive fashion, on the same order as the stops were boarded. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user has alighted, which line and journey will logically match the line and journey of the last boarding stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user\marginpar{[CITATION NEEDED]}.
 
-\ctr~is built first by sorting all trips. If we consider that a trip is composed by $n$ of the $<s_i,l_i,j_i>,~1\leq i\leq n$ triplets previously described, where the first triplet corresponds to the first boarded stop and the last triplet corresponds to the last alighted stop (final destination), then the collection of trips is sorted by the key $s_1,s_n,l_1,j_1$. That is, trips are initially sorted by the first boarded stop identifier. If these are equal, they are then sorted by their last stop identifier, analogously followed by the line identifier and journey code of the first stop. Figure~\ref{fig:example_ctr} displays an example of a correct sorting of trips.
-
-\begin{figure}[hbt!]
-\includegraphics[width=\textwidth]{example_trips.eps}
-\caption{An example of five trips represented on \ctr~with the optimizations for \texttt{WML} and \texttt{WMJ}, and sections for each stop delimited by dotted lines}
-\label{fig:example_ctr}
-\end{figure}
-
-We use three complementary structures to represent each component of the sequence, as shown in Figure~\ref{fig:example_ctr}:
+We use three complementary structures to represent each component of the sequence, as shown in Figure~\ref{fig:example_xctr}:
 \begin{enumerate}[(i)]
     \item An adapted Compressed Suffix Array (\texttt{CSA}) over the stop identifiers of all trips, concatenated into a string with additional terminator symbols $\$$ appended at the end of each trip. While in the final CSA we assign these $\$$ a lexicographical value of 0 (thus smaller than any stop identifier), we assign them different values during the construction of the suffix array (A) to ensure that the entries for $\$$ in A maintain the same order as in the original text. Finally, we make a modification on $\Psi$ to make the entries of each $\$$ point to the start of its own trip instead of the next one. These two modifications are proven necessary for our implemented queries, at the expense of losing some of the properties of a classic CSA.
     \item \texttt{WML}: Aligned to the entries of (i) there is a Wavelet Matrix (WM) for the line identifiers of each stop. Aligned to the $\$$ section we duplicate the starting lines of each trip. As a trivial optimization, we build a separate WM for every stop, allowing us to save space due to the fact that a single stop does not usually belong to many lines, thus the average height of these WM is no larger (and usually smaller) than the height of a single WM.
     \item \texttt{WMJ}: A WM of jcodes aligned to the leaves of (ii). Note that this makes this structure dependant on (ii), which is coherent with the fact that journey codes themselves are relative to the line identifier. In case (ii) implements the optimization described, the entries of the WM must also be rearranged to match the delimited stops.
 \end{enumerate}
+
+\begin{figure}[hbt!]
+\includegraphics[width=\textwidth]{example_xctr.eps}
+\caption{An example of five trips represented on \ctr~with the optimizations for \texttt{WML} and \texttt{WMJ}, and sections for each stop delimited by dotted lines}
+\label{fig:example_xctr}
+\end{figure}
 
 As \ctr is a complete representation of the collection of trips, we are able to extract any trip using the structures described. \marginpar{The idea here is that explaining how to extract will help understand the more complex FromXtoY query later} The algorithm to extract a trip is shown in the Algorithm~\ref{alg:extract}, where \FuncSty{Rank} and \FuncSty{Select} operate over the bitvector $D$ from our \texttt{CSA}, \FuncSty{WML}{(s$_a$)} is the WM corresponding to the stop \DataSty{s$_a$} in the optimized version of \texttt{WML} and \FuncSty{TrackDown} returns the leaf index of a WM given a root index. In a practical implementation, it is not needed to access \texttt{WML} and \texttt{WMJ} for the line identifier and jcode of the last stop of the trip, as they will always match the previous ones.
 
@@ -638,6 +649,8 @@ Missing a comparison of \acumm~vs \ttctr!
 We have implemented the most adequate queries for \ttctr~and \ctr~from those described in Section~\ref{sec:rq}, and measured their average execution time from 100.000 randomly generated queries on [rellenar detalles de Compostela 2]. In this section we will only discuss four of the possible configurations tested for both \ttctr~and \ctr, with t$_{\Psi}$ values of 32 and 512 combining with WM using either uncompressed bitvectors (\texttt{RG32}) or the most compressed (\texttt{RRR128})\footnote{In case of \ctr, this refers to bitvectors from both \texttt{WML} and \texttt{WMJ}}. These four configurations should be adequate enough to illustrate the space-time trade-offs of our approaches, although the execution times for all tested configurations can be found in the Appendix A.
 
 We demonstrate the main advantage of \ctr~over the older \ttctr~ in the Figure~\ref{fig:start}b, where restricting a line or a time interval for an \texttt{end\_X} query is prohibitively expensive for \ttctr~ due to its separate vocabulary for final stops, requiring to query the \texttt{CSA} for every possible stop that could have been boarded before X to restrict a line. In the Figure~\ref{fig:start}a it is also possible to see how the performance of \ctr~degrades less with a highly compressed \texttt{CSA} for the query \texttt{start\_X$_T$}, where even queries over a compressed \texttt{WML} are faster than queries over the \texttt{CSA}.
+
+\marginpar{Review implementation of TTCTR end X. Also consider changing the order of the bars}
 
 \begin{figure}[hbt!]
 \begin{subfigure}{0.5\linewidth}
