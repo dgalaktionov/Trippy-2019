@@ -332,11 +332,17 @@ The journey codes ($jcodes$) are encoded in $Jcodes^{\Psi}[1,n]$, as shown in Fi
 
 Finally, $Jcodes^{\Psi}$ is represented with a \texttt{WM}, to support the operations we need to evaluate our proposed queries while avoiding the overhead of other types of indices that are not based in compact representations.
 
-FALTA EXPLICAR COMO SE HACEN LAS QUERIES.
+With \ttctr~we obtain a clear separation between the spatial representation of the trips (\texttt{CSA}) and the temporal representation (\texttt{WM} of $jcodes$), where the former can be used to address queries such as ``number of passengers that started their trip from a stop $s\in S$ and a line $l\in L$'' (\texttt{start\_X$_{L}$} from Section~\ref{sec:rq}) with a binary search of the pattern $\$,s:l$, while the later can be used to filter down these results to a time window (\texttt{start\_X$_{LT}$}) with a $range_{a,b}(S,i,j)$ operation over the \texttt{WM}, where $a$ and $b$ are $jcodes$ obtained from Algorithm~\ref{alg:jcodes} and $i$ and $j$ delimit the range of the results obtained in $\Psi$. Because the $\$$ symbols were made cyclical in $\Psi$, it is also possible to answer \texttt{from\_X\_to\_Y} queries by searching for a pattern $Y,\$,X:l$ instead.
 
 \subsection{\ctr}
 \label{sec:ctr}
-Bla bla we need the same sorted trips as in \ttctr.
+A fundamental weakness of \ttctr~is that it requires several binary search operations over the \texttt{CSA} in the following cases:
+\begin{itemize}
+    \item We are interested in the number of passengers that started their trip at a stop $s$ and a time window $t_a...t_z$, but from \textbf{any line} (\texttt{start\_X$_{T}$} from Section~\ref{sec:rq}). As $jcodes$ are relative to lines, we must make a separate query for each possible $(s:l_i) \forall l_i \in L$ combinations.
+    \item We need to restrict the line of a final stop, in queries such as \texttt{end\_X$_{L}$} or \texttt{from\_X\_to\_Y$_{L}$} (and similar variations). Because the final stops belong to separate entries of the vocabulary that do not encode line identifiers, to restrict a stop $Y\in S$ to a line $l\in L$ we need to search for every possible expanded pattern $W:l,Y...$, for every stop $W$ from the line $l$ that could have been boarded before alighting at $Y$. While it is tempting to address this issue by modifying the design of \ttctr so that final stops also encode line identifiers, this would in turn make queries that do not restrict the line of the final stop inefficient, and we would need to perform a new query for every combination of $(s:l_i) \forall l_i \in L$, as in the previous case. \marginpar{\tiny Viendo los experimentos, uno se puede preguntar si no habria quedado mejor meter lineas en paradas finales...}
+\end{itemize}
+
+Bla bla we need the same sorted trips as in \ttctr. $V$ is not important anymore.
 
 We use three complementary structures to represent each component of the sequence, as shown in Figure~\ref{fig:example_xctr}:
 \begin{enumerate}[(i)]
