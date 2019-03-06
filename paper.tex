@@ -22,7 +22,7 @@
 \newcommand{\acumm}{T-Matrices} % T is for Total!
 \newcommand{\ctr}{XCTR}
 \newcommand{\ttctr}{TTCTR}
-\newcommand{\ctrq}{NCTRc}
+\newcommand{\ctrq}{XCTRc}
 
 \begin{document}
 %
@@ -97,7 +97,7 @@ Another relevant representation is described in \cite{DBLP:conf/gis/KroghPTT14}.
 A recent compact data structure names {\em CiNCT} has been proposed in \cite{koide2018cinct}, where trajectories are encoded into a string, that is used to build an FM-index \cite{DBLP:conf/focs/FerraginaM00} with a Huffman-shaped Wavelet Tree \cite{ferragina2009compressed}. To further save space, the string is constructed with relative movement labels instead of absolute edges, with an auxiliary structure that represents a network graph built from the input trajectories themselves. While this structure excels at pattern-matching and path extraction in vehicular networks (such as the streets of a city), it cannot be applied to our problems in public transportation networks.
 
 \subsection{Trajectory data mining}
-Currently there are several known techniques that would allow to collect data regarding users' trips over a public transportation network. Numerous works exist where these trajectories are mined from the transactions of smart cards \cite{bhaskar2015passenger,wang2014aggregated}. This can be complemented with information derived from GPS devices, as shown in \cite{ma2014development}. Alternatively, these trajectories may be extracted relying on positioning obtained from cellular networks, as proven by \cite{liu2017exploring}. 
+Currently there are several known techniques that would allow to collect data regarding users' trips over a public transportation network. Numerous works exist where these trajectories are mined from the transactions of smart cards \cite{bhaskar2015passenger,wang2014aggregated}. This can be complemented with information derived from GPS devices, as shown in \cite{ma2014development}. Alternatively, these trajectories may be extracted relying on positioning obtained from cellular networks, as proven by \cite{liu2017exploring}.
 
 In addition, the authors of \cite{tao2014exploring} have specifically tackled the challenge of reconstructing full trajectories, accounting for trip-chaining, using data obtained from smart cards. Furthermore, in \cite{alsger2016validating} it is also proven that not only the alighting stops, but also the (last) destination stop of a trip can be estimated from boarding data gathered by a smart card, within a reasonable accuracy.
 
@@ -279,22 +279,11 @@ Due to comparison reasons it has been also built these sampled structures using 
 
 
 \subsection{\ttctr}
-The \ttctr was introduced in \cite{brisaboa2018new}, where we use a variant of the \texttt{CSA} for integer alphabets to represent the spatial component, i.e. the sequence of pairs $(s_i,l_i)$ that compose each user trip. However, in order to create a \texttt{CSA} we need to assign each pair $(stop,line)$ a unique integer $id$. This will allow us to create an integer sequence $T[1,n]$ (ended by a $\$$  terminator) over which our \texttt{CSA} will be built. For this purpose we create a vocabulary $V$ (with $1+n_s(1+n_l)$ entries)  as follows:
+A user trip can be represented by the stops from the transportation system that were boarded by a user, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. These triplets describe a trip in a consecutive fashion, on the same order as the stops were boarded. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user has alighted, which line and journey will logically match the line and journey of the last boarding stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user \cite{alsger2016validating}.
 
-\begin{itemize}
-	\item Entry $V[0]$ is reserved for the terminator symbol $\$$.
-	\item Entries $\langle V[1],V[2], \dots V[n_s]\rangle]$ are associated to stops $\langle 1,2,\dots, n_s\rangle$ and are used to represent the final stops of the trips. That is, when a given stop $x$ ends a user trip, it is given $id \leftarrow x$.
-	\item The last $n_l$$\times$$n_s$ entries are associated to the sequence composed of the pairs $(s,l) \in |S|$$\times$$|L|$ considering that those pairs are sorted by $s$ and $l$ respectively. That is, entry $V[n_s+1]$ is given to $(s,l)=(1,1)$; $V[n_s+2]$ to $(1, 2)$; $V[n_s+3]$ to $(1, 3)$; $\dots$; $V[n_s+n_l]$ to $(1, {n_l})$;  $V[n_s+n_l +1]$ to $(s,l)= (2, 1)$, $V[n_s+n_l +2]$ to $(2, 2)$, and so on. In practice, in this case, the $id/${\em pos-in-V} for a pair $(s,l)$ is obtained as $id \leftarrow  n_s+ n_l(s-1) + l$. 
-\end{itemize}
+\ttctr was introduced in \cite{brisaboa2018new}, where the spatial component (the pairs $(s,l)$ for the stops and lines of a trip) is represented with a \texttt{CSA} where each unique pair $(s,l)$ is encoded as an integer $id$ in the input sequence $T[1,n]$ that is used to build the \texttt{CSA}.
 
-Note that there will be a large number of unused entries (holes) in $V$. Yet, this can be efficiently handled by a bitvector $B$ with rank/select capabilities 
-that marks the used entries from $V$. Therefore, once we gather the position ($id$) corresponding to a pair $(s,l)$ in $V$, we obtain its final position ($id'$) in a {\em vocabulary without holes} ($V'$) as $id' \leftarrow rank_1(B,id)$. Our $id'$ assignment ensures that the used pairs $(s_i,l)$, corresponding to a given stop $s_i$, receive contiguous $id'$s. This will be interesting at query time.  
-
-The next step encodes the pairs $(stop,line)$ from each user trip with their corresponding $id'$. After each trip, a $0$ ($id'$ for terminator $\$$) is added. That is, a trip with $k$ stages is regarded as a string $s_1s_2\dots s_{k} s_{last} \$$, where $1\leq s_{last} \leq rank_1(B,n_s)$ is the $id'$ of ending stop given to stop $s$.
-
-Once this process has completed, a sequence $T[1,n]$ that contains only values from $V'$ is obtained, and a \texttt{CSA} can be built on $T$. 
-
-\ttctr~is built first by sorting all trips. If we consider that a trip is composed by $n$ of the $<s_i,l_i,j_i>,~1\leq i\leq n$ triplets previously described, where the first triplet corresponds to the first boarded stop and the last triplet corresponds to the last alighted stop (final destination), then the collection of trips is sorted by the key $s_1,s_n,l_1,j_1$. That is, trips are initially sorted by the first boarded stop identifier. If these are equal, they are then sorted by their last stop identifier, analogously followed by the line identifier and journey code of the first stop. Figure~\ref{fig:example_trips} displays an example of a correct sorting of trips.
+In this work, \ttctr~is built first by sorting all trips. If we consider that a trip is composed by $n$ of the $<s_i,l_i,j_i>,~1\leq i\leq n$ triplets previously described, where the first triplet corresponds to the first boarded stop and the last triplet corresponds to the last alighted stop (final destination), then the collection of trips is sorted by the key $s_1,s_n,l_1,j_1$. That is, trips are initially sorted by the first boarded stop identifier. If these are equal, they are then sorted by their last stop identifier, analogously followed by the line identifier and journey code of the first stop. Figure~\ref{fig:example_trips} displays an example of a correct sorting of trips.
 
 \begin{figure}[hbt!]
 \includegraphics[width=0.4\textwidth]{example_trips.eps}
@@ -302,18 +291,22 @@ Once this process has completed, a sequence $T[1,n]$ that contains only values f
 \label{fig:example_trips}
 \end{figure}
 
-In parallel with the construction of $T$, we create a sequence $Jcodes[1,n]$ aligned to $T$ where we set, for each trip the $journey$-$id$ corresponding to each stage. Recall the $journey$-$id$ is the third term from the triples $(s_i,l_i,j_i),~i\in[1,k]$ from a trip. In addition, assuming that $s_p$ contains the $0$ corresponding to the terminator $\$$ for the trip, we set $Jcodes[p]\leftarrow j_1$ (i.e. the same journey-id as  the starting stop of the trip). According to the discussion above, Figure~\ref{fig:ttctr} shows:
-{\em (step-1)} the sequence of pairs $(stop,line)$ for each trip, and the corresponding $Jcodes$; {\em (step-2)} the vocabularies, including $V$, $B$, and $V'$ (ending stops $s$ of trips do not need the line, therefore we use ``$s\!:\!*$".);\footnote{In this example, with only $5$ trips,  we have only $11$ {\em used pairs} in $V$, but in a real scenario for each stop of each line ({\em existing pair} $(s,l)$) 
-	there will be a $1$ in $B$.} 
-and {\em (step-3)} the structures involved in the creation of \texttt{CSA} from which \ttctr~uses $\Psi$, $D$, (and $V'$, $B$).
+We also need an unambiguous function to encode the pairs $(s,l)$. Consider a vocabulary $V$ such that:
+\begin{itemize}
+	\item Entry $V[0]$ is reserved for the terminator symbol $\$$.
+	\item Entries $\langle V[1],V[2], \dots V[|S|]\rangle]$ are associated to stops $s_1,s_2,\dots, s_{|S|}$ and are used to represent the final stops of the trips. That is, when a given stop $s_i$ ends a user trip, it is given $id \leftarrow s_i$.
+	\item The following $|L|$$\times$$|S|$ entries are associated to the sequence composed of the pairs $(s,l) \in S\times L$, sorted first by the stop id $s$ and later by the line id $l$. That is, entry $V[|S|+1]$ is given to $(s_1,l_1)$; $V[|S|+2]$ to $(s_1,l_2)$; $V[|S|+3]$ to $(s_1,l_3)$; $\dots$; $V[|S|+|L|]$ to $(s_1,l_{|L|})$;  $V[|S|+|L|+1]$ to $(s_2, l_1)$, $V[|S|+|L|+2]$ to $(s_2, l_2)$, and so on. Therefore, it is easy to see that any $(s_i,l_j)$ is going to be associated to the entry $V[|S|+ |L|(i-1) + j]$.
+\end{itemize}
 
-\begin{figure}[hbt!]
+While this arrangement would theoretically produce many entries in $V$ that are mapped to pairs $(s,l)$ that are unused in $T$, either because the stop is never traversed by that line or because we do not have the record of a user trip containing it, these entries can be skipped with a compact bitvector $B$ with rank and select capabilities, that marks with a one every used entry from $V$. This will enable us to operate with a much smaller vocabulary $V'$ with only the used entries from $V$, such that $V[i] = V'[rank_1(B,i)]$. Refer to the vocabulary shown Figure~\ref{fig:ttctr}(2) for an example where pairs $s:l$ are encoded to 43 unique identifiers in $V$. After that, $B$ marks which of the entries of $V$ actually appear in the original sequence. Finally $V'$ is built with only 12 entries, for each one from $B$. Note that neither $V$ nor $V'$ are explicitly represented in practice, as $rank$ and $select$ operations over $B$ are enough to map and unmap, respectively, vocabulary identifiers.
+
+\begin{figure}
 \includegraphics[width=\textwidth]{network.eps}
 \caption{Network representation for the example of \ttctr~from Figure~\ref{fig:ttctr}}
 \label{fig:example_trips_ttctr}
 \end{figure}
 
-\begin{figure}[tbhp]
+\begin{figure}
 	%\vspace{-0.2cm}
     \includegraphics[width=1.00\textwidth]{ttctr2019.eps}
 	%\vspace{-0.3cm}
@@ -322,18 +315,28 @@ and {\em (step-3)} the structures involved in the creation of \texttt{CSA} from 
 	%\vspace{-0.2cm}
 \end{figure}
 
-THIS TIME WE ARE USING TWO TRICKS FOR $\$$: CYCLES AND ORDER PRESERVATION. NEED TO EXPLAIN THEM BOTH HERE INSTEAD OF IN \ctr!
+After this, the sequence $T[1,n]$ is built, with the identifiers obtained from mapping mapping in the vocabulary entries of $V'$, over which a \texttt{CSA} is built, as seen in Figure~\ref{fig:ttctr}(3). Each encoded trip in $T$ is terminated with with additional $\$$ symbols. While in the final \texttt{CSA} we assign all these $\$$ a lexicographical value of 0 $(V[0])$, we assign them different values during the construction of the suffix array (A) to ensure that the entries for $\$$ in $A$ maintain the same order as in the original text. Finally, we make a modification on $\Psi$ to make the entries of each $\$$ point to the start of its own trip instead of the next one. These two modifications are proven necessary for our implemented queries, at the expense of losing some of the properties of a classic CSA. For reference, in Figure~\ref{fig:ttctr} we also $A'$ and $\Psi'$, that show how our modifications compare to the original CSA.
 
-The temporal component of \ttctr includes the sequence $Jcodes$ described above. Recall $Jcodes$ contains $journey$-$ids$ aligned to the values in $T$, and that, for every line $l$ there are $n_j^l$ journeys sorted by their starting time and numbered as $0\dots n_j^l-1$, and also we have average accumulated times to reach each stop in the line. Therefore, this representation allows us to describe exact times for each stop.
+The journey codes ($jcodes$) are encoded in $Jcodes^{\Psi}[1,n]$, as shown in Figure~\ref{fig:ttctr}(4), that is aligned to $\Psi$ instead of $T$. $Jcodes[8]= 1$ corresponds to $Jcodes^{\Psi}[14]=1$, since $A[14]=8$; $Jcodes[9]= 2$ corresponds to $Jcodes^{\Psi}[18]=2$, since $A[18]=9$; and so on. Recall that $jcodes$ are relative to their line identifiers, leading us to skip the $jcodes$ that would be aligned to the entries of $\Psi$ belonging to the final stops (represented as ``$s\!:\!*$" in $V$), as they lack line identifiers, which are in turn needed to identify a journey. Additionally, the first positions of $Jcodes^{\Psi}$, aligned with the $\$$ entries, we duplicate the same $jcodes$ as in the start of each trip.
 
-In practice, we use $Jcodes^{\Psi}$, which is aligned to $\Psi$ rather than to $T$. See {\em step-4} in Figure~\ref{fig:ttctr}. 
-Note that $Jcodes[8]= 1$ corresponds to $Jcodes^{\Psi}[14]=1$, since $A[14]=8$; 
-          $Jcodes[9]= 2$ corresponds to $Jcodes^{\Psi}[18]=2$, since $A[18]=9$; and so on.
-We represent the sequence $Jcodes^{\Psi}$ with a \texttt{WM}. This provides indexing capabilities to the temporal component and allows us to apply compression techniques.
+%In parallel with the construction of $T$, we create a sequence $Jcodes[1,n]$ aligned to $T$ where we set, for each trip the $journey$-$id$ corresponding to each stage. Recall the $journey$-$id$ is the third term from the triples $(s_i,l_i,j_i),~i\in[1,k]$ from a trip. In addition, assuming that $s_p$ contains the $0$ corresponding to the terminator $\$$ for the trip, we set $Jcodes[p]\leftarrow j_1$ (i.e. the same journey-id as  the starting stop of the trip). According to the discussion above, Figure~\ref{fig:ttctr} shows:
+%{\em (step-1)} the sequence of pairs $(stop,line)$ for each trip, and the corresponding $Jcodes$; {\em (step-2)} the vocabularies, including $V$, $B$, and $V'$ (ending stops $s$ of trips do not need the line, therefore we use ``$s\!:\!*$".);\footnote{In this example, with only $5$ trips,  we have only $11$ {\em used pairs} in $V$, but in a real scenario for each stop of each line ({\em existing pair} $(s,l)$) 
+%	there will be a $1$ in $B$.} 
+%and {\em (step-3)} the structures involved in the creation of \texttt{CSA} from which \ttctr~uses $\Psi$, $D$, (and $V'$, $B$).
+
+%The temporal component of \ttctr includes the sequence $Jcodes$ described above. Recall $Jcodes$ contains $journey$-$ids$ aligned to the values in $T$, and that, for every line $l$ there are $n_j^l$ journeys sorted by their starting time and numbered as $0\dots n_j^l-1$, and also we have average accumulated times to reach each stop in the line. Therefore, this representation allows us to describe exact times for each stop.
+
+% In practice, we use $Jcodes^{\Psi}$, which is aligned to $\Psi$ rather than to $T$. See in Figure~\ref{fig:ttctr}(4).
+% Note that $Jcodes[8]= 1$ corresponds to $Jcodes^{\Psi}[14]=1$, since $A[14]=8$; 
+%           $Jcodes[9]= 2$ corresponds to $Jcodes^{\Psi}[18]=2$, since $A[18]=9$; and so on.
+
+Finally, $Jcodes^{\Psi}$ is represented with a \texttt{WM}, to support the operations we need to evaluate our proposed queries while avoiding the overhead of other types of indices that are not based in compact representations.
+
+FALTA EXPLICAR COMO SE HACEN LAS QUERIES.
 
 \subsection{\ctr}
 \label{sec:ctr}
-A user trip can be represented by the stops from the transportation system that were boarded by a user, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. These triplets describe a trip in a consecutive fashion, on the same order as the stops were boarded. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user has alighted, which line and journey will logically match the line and journey of the last boarding stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user\marginpar{[CITATION NEEDED]}.
+Bla bla we need the same sorted trips as in \ttctr.
 
 We use three complementary structures to represent each component of the sequence, as shown in Figure~\ref{fig:example_xctr}:
 \begin{enumerate}[(i)]
