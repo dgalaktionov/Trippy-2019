@@ -1,9 +1,168 @@
 \appendix
 \chapter*{Appendix A: Execution time for all tested configurations}
 \label{app:times}
-Bla bla
+The following are the the average execution times from 100.000 randomly generated queries of each type on [rellenar detalles de Compostela 2]. All results are in $\mu$sec.
+
+%\section{Execution times on \ttctr}
+
+\begin{table}[hpt!]
+\caption{Execution times of \texttt{board\_X$_{LT}$} queries for \ttctr, with all variants.}
+\begin{tabular}{|r|r|r|r|r|r|r|}
+\hline
+$t_{\Psi}$ & \texttt{WM} & \texttt{board\_X} & \texttt{board\_X$_{L}$} & \texttt{board\_X$_{T}$} & \texttt{board\_X$_{LT}$} \\
+\hline
+32 & RG32 & 0.17 & 0.12 & 8.21 & 3.87 \\
+32 & RRR32 & 0.17 & 0.12 & 10.92 & 5.14 \\
+32 & RRR64 & 0.17 & 0.13 & 11.71 & 5.35 \\
+32 & RRR128 & 0.17 & 0.13 & 13.35 & 5.99 \\
+128 & RG32 & 0.17 & 0.13 & 8.24 & 3.88 \\
+128 & RRR32 & 0.17 & 0.13 & 10.90 & 5.12 \\
+128 & RRR64 & 0.17 & 0.12 & 11.67 & 5.36 \\
+128 & RRR128 & 0.17 & 0.13 & 13.19 & 5.92 \\
+512 & RG32 & 0.17 & 0.13 & 8.22 & 3.86 \\
+512 & RRR32 & 0.17 & 0.12 & 10.90 & 5.12 \\
+512 & RRR64 & 0.17 & 0.13 & 11.64 & 5.41 \\
+512 & RRR128 & 0.17 & 0.13 & 13.22 & 5.95 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[hpt!]
+\caption{Execution times of \texttt{start\_X$_{LT}$} queries for \ttctr, with all variants.}
+\begin{tabular}{|r|r|r|r|r|r|r|}
+\hline
+$t_{\Psi}$ & \texttt{WM} & \texttt{start\_X} & \texttt{start\_X$_{L}$} & \texttt{start\_X$_{T}$} & \texttt{start\_X$_{LT}$} \\
+\hline
+32 & RG32 & 4.20 & 4.16 & 18.52 & 8.22 \\
+32 & RRR32 & 4.18 & 4.18 & 21.01 & 9.43 \\
+32 & RRR64 & 4.21 & 4.15 & 21.70 & 9.65 \\
+32 & RRR128 & 4.18 & 4.15 & 23.20 & 10.22 \\
+128 & RG32 & 6.96 & 6.94 & 25.05 & 10.68 \\
+128 & RRR32 & 6.96 & 6.94 & 27.44 & 11.78 \\
+128 & RRR64 & 6.95 & 6.95 & 28.05 & 12.04 \\
+128 & RRR128 & 6.94 & 6.94 & 29.64 & 12.62 \\
+512 & RG32 & 17.01 & 16.85 & 51.36 & 21.13 \\
+512 & RRR32 & 17.03 & 16.92 & 53.78 & 21.80 \\
+512 & RRR64 & 17.05 & 16.86 & 54.43 & 22.01 \\
+512 & RRR128 & 17.00 & 17.08 & 55.88 & 22.65 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[hpt!]
+\caption{Execution times of \texttt{end\_X$_{LT}$} queries for \ttctr, with all variants.}
+\begin{tabular}{|r|r|r|r|r|r|r|}
+\hline
+$t_{\Psi}$ & \texttt{WM} & \texttt{end\_X} & \texttt{end\_X$_{L}$} & \texttt{end\_X$_{T}$} & \texttt{end\_X$_{LT}$} \\
+\hline
+32 & RG32 & 1.41 & 35.26 & 224.45 & 68.07 \\
+32 & RRR32 & 1.40 & 35.08 & 251.63 & 77.05 \\
+32 & RRR64 & 1.40 & 35.24 & 263.88 & 80.63 \\
+32 & RRR128 & 1.40 & 35.12 & 288.41 & 88.33 \\
+128 & RG32 & 1.40 & 83.96 & 412.51 & 116.58 \\
+128 & RRR32 & 1.42 & 84.11 & 439.37 & 125.26 \\
+128 & RRR64 & 1.41 & 84.04 & 452.08 & 129.07 \\
+128 & RRR128 & 1.40 & 84.09 & 477.22 & 137.03 \\
+512 & RG32 & 1.41 & 272.22 & 1078.30 & 305.42 \\
+512 & RRR32 & 1.43 & 272.47 & 1109.32 & 314.62 \\
+512 & RRR64 & 1.41 & 272.19 & 1119.29 & 318.13 \\
+512 & RRR128 & 1.40 & 272.53 & 1146.49 & 325.90 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[hbpt!]
+\caption{Execution times of \texttt{from\_X\_to\_Y} queries for \ttctr, variating start and end line restrictions.}
+\begin{tabular}{|r|r|r|r|r|r|r|}
+\hline
+$t_{\Psi}$ & \texttt{WM} & \texttt{from\_X\_to\_Y} & \texttt{from\_X$_{L}$\_to\_Y} & \texttt{from\_X\_to\_Y$_{L}$} & \texttt{from\_X$_{L}$\_to\_Y$_{L}$} \\
+\hline
+32 & RG32 & 7.11 & 7.10 & 31.24 & 31.03 \\
+32 & RRR32 & 7.13 & 7.11 & 31.24 & 31.02 \\
+32 & RRR64 & 7.15 & 7.14 & 31.20 & 31.00 \\
+32 & RRR128 & 7.15 & 7.10 & 32.14 & 31.05 \\
+128 & RG32 & 11.62 & 11.59 & 65.07 & 64.60 \\
+128 & RRR32 & 11.66 & 11.59 & 65.16 & 64.72 \\
+128 & RRR64 & 11.62 & 11.59 & 65.13 & 65.45 \\
+128 & RRR128 & 11.62 & 11.58 & 65.10 & 64.66 \\
+512 & RG32 & 28.37 & 28.22 & 195.18 & 193.64 \\
+512 & RRR32 & 28.37 & 28.21 & 195.99 & 194.62 \\
+512 & RRR64 & 28.37 & 28.21 & 196.03 & 194.40 \\
+512 & RRR128 & 28.40 & 28.24 & 195.88 & 194.33 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[hbpt!]
+\caption{Execution times of \texttt{from\_X$_T$\_to\_Y} queries for \ttctr, with starting time restrictions and variating start and end line restrictions.}
+\begin{tabular}{|r|r|r|r|r|r|r|}
+\hline
+$t_{\Psi}$ & \texttt{WM} & \texttt{from\_X$_{T}$\_to\_Y} & \texttt{from\_X$_{LT}$\_to\_Y} & \texttt{from\_X$_{T}$\_to\_Y$_{L}$} & \texttt{from\_X$_{LT}$\_to\_Y$_{L}$} \\
+\hline
+32 & RG32 & 21.37 & 10.38 & 37.27 & 23.88 \\
+32 & RRR32 & 22.25 & 11.05 & 39.45 & 25.74 \\
+32 & RRR64 & 22.46 & 11.17 & 40.14 & 26.40 \\
+32 & RRR128 & 22.98 & 11.57 & 42.00 & 27.89 \\
+128 & RG32 & 32.83 & 15.25 & 64.04 & 41.68 \\
+128 & RRR32 & 33.91 & 15.89 & 66.38 & 43.77 \\
+128 & RRR64 & 33.90 & 16.04 & 67.09 & 44.20 \\
+128 & RRR128 & 34.41 & 16.37 & 68.93 & 45.71 \\
+512 & RG32 & 78.45 & 34.57 & 169.98 & 112.46 \\
+512 & RRR32 & 79.33 & 35.25 & 172.87 & 114.77 \\
+512 & RRR64 & 79.56 & 35.39 & 173.66 & 115.51 \\
+512 & RRR128 & 80.11 & 35.75 & 175.46 & 117.63 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[hbpt!]
+\caption{Execution times of \texttt{from\_X\_to\_Y$_T$} queries for \ttctr, with ending time restrictions and variating start and end line restrictions.}
+\begin{tabular}{|r|r|r|r|r|r|r|}
+\hline
+$t_{\Psi}$ & \texttt{WM} & \texttt{from\_X\_to\_Y$_{T}$} & \texttt{from\_X$_{L}$\_to\_Y$_{T}$} & \texttt{from\_X\_to\_Y$_{LT}$} & \texttt{from\_X$_{L}$\_to\_Y$_{LT}$} \\
+\hline
+32 & RG32 & 94.47 & 93.05 & 34.71 & 34.11 \\
+32 & RRR32 & 96.03 & 94.39 & 35.59 & 35.01 \\
+32 & RRR64 & 96.79 & 94.70 & 35.86 & 35.18 \\
+32 & RRR128 & 97.06 & 95.37 & 36.20 & 35.60 \\
+128 & RG32 & 214.77 & 212.42 & 68.32 & 67.44 \\
+128 & RRR32 & 216.61 & 214.44 & 69.40 & 68.54 \\
+128 & RRR64 & 216.64 & 214.10 & 69.49 & 68.59 \\
+128 & RRR128 & 218.35 & 214.48 & 69.78 & 69.12 \\
+512 & RG32 & 630.29 & 625.12 & 198.43 & 196.33 \\
+512 & RRR32 & 634.07 & 628.69 & 199.82 & 198.00 \\
+512 & RRR64 & 634.95 & 629.76 & 200.36 & 198.32 \\
+512 & RRR128 & 635.32 & 629.63 & 200.56 & 198.51 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[hbpt!]
+\caption{Execution times of \texttt{from\_X$_T$\_to\_Y$_T$} queries for \ttctr, with starting and ending time restrictions and variating start and end line restrictions.}
+\begin{tabular}{|r|r|r|r|r|r|r|}
+\hline
+$t_{\Psi}$ & \texttt{WM} & \texttt{from\_X$_{T}$\_to\_Y$_{T}$} & \texttt{from\_X$_{LT}$\_to\_Y$_{T}$} & \texttt{from\_X$_{T}$\_to\_Y$_{LT}$} & \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} \\
+\hline
+32 & RG32 & 71.26 & 50.47 & 38.48 & 25.16 \\
+32 & RRR32 & 74.36 & 53.03 & 41.26 & 27.62 \\
+32 & RRR64 & 75.19 & 53.69 & 42.18 & 28.20 \\
+32 & RRR128 & 77.22 & 55.41 & 44.20 & 29.91 \\
+128 & RG32 & 145.78 & 104.37 & 65.36 & 42.97 \\
+128 & RRR32 & 149.11 & 107.27 & 68.34 & 45.37 \\
+128 & RRR64 & 150.74 & 107.69 & 69.01 & 46.03 \\
+128 & RRR128 & 151.66 & 109.30 & 71.09 & 47.69 \\
+512 & RG32 & 408.12 & 294.89 & 171.26 & 113.68 \\
+512 & RRR32 & 412.73 & 298.64 & 174.72 & 116.46 \\
+512 & RRR64 & 413.86 & 299.46 & 175.60 & 117.25 \\
+512 & RRR128 & 415.60 & 300.92 & 177.78 & 118.79 \\
+\hline
+\end{tabular}
+\end{table}
+
+%\section{Execution times on \ctr}
 
 \begin{table}
+\caption{Execution times of \texttt{board\_X$_{LT}$} queries for \ctr, with all variants.}
 \begin{tabular}{|r|r|r|r|r|r|r|}
 \hline
 $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{board\_X} & \texttt{board\_X$_{L}$} & \texttt{board\_X$_{T}$} & \texttt{board\_X$_{LT}$} \\
@@ -61,6 +220,7 @@ $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{board\_X} & \texttt{board\_X$
 \end{table}
 
 \begin{table}
+\caption{Execution times of \texttt{start\_X$_{LT}$} queries for \ctr, with all variants.}
 \begin{tabular}{|r|r|r|r|r|r|r|}
 \hline
 $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{start\_X} & \texttt{start\_X$_{L}$} & \texttt{start\_X$_{T}$} & \texttt{start\_X$_{LT}$} \\
@@ -118,6 +278,7 @@ $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{start\_X} & \texttt{start\_X$
 \end{table}
 
 \begin{table}
+\caption{Execution times of \texttt{end\_X$_{LT}$} queries for \ctr, with all variants.}
 \begin{tabular}{|r|r|r|r|r|r|r|}
 \hline
 $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{end\_X} & \texttt{end\_X$_{L}$} & \texttt{end\_X$_{T}$} & \texttt{end\_X$_{LT}$} \\
@@ -175,6 +336,7 @@ $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{end\_X} & \texttt{end\_X$_{L}
 \end{table}
 
 \begin{table}
+\caption{Execution times of \texttt{from\_X\_to\_Y} queries for \ctr, variating start and end line restrictions.}
 \begin{tabular}{|r|r|r|r|r|r|r|}
 \hline
 $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{from\_X\_to\_Y} & \texttt{from\_X$_{L}$\_to\_Y} & \texttt{from\_X\_to\_Y$_{L}$} & \texttt{from\_X$_{L}$\_to\_Y$_{L}$} \\
@@ -232,6 +394,7 @@ $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{from\_X\_to\_Y} & \texttt{fro
 \end{table}
 
 \begin{table}
+\caption{Execution times of \texttt{from\_X$_T$\_to\_Y} queries for \ctr, with starting time restrictions and variating start and end line restrictions.}
 \begin{tabular}{|r|r|r|r|r|r|r|}
 \hline
 $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{from\_X$_{T}$\_to\_Y} & \texttt{from\_X$_{LT}$\_to\_Y} & \texttt{from\_X$_{T}$\_to\_Y$_{L}$} & \texttt{from\_X$_{LT}$\_to\_Y$_{L}$} \\
@@ -289,6 +452,7 @@ $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{from\_X$_{T}$\_to\_Y} & \text
 \end{table}
 
 \begin{table}
+\caption{Execution times of \texttt{from\_X\_to\_Y$_T$} queries for \ctr, with ending time restrictions and variating start and end line restrictions.}
 \begin{tabular}{|r|r|r|r|r|r|r|}
 \hline
 $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{from\_X\_to\_Y$_{T}$} & \texttt{from\_X$_{L}$\_to\_Y$_{T}$} & \texttt{from\_X\_to\_Y$_{LT}$} & \texttt{from\_X$_{L}$\_to\_Y$_{LT}$} \\
@@ -346,6 +510,7 @@ $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{from\_X\_to\_Y$_{T}$} & \text
 \end{table}
 
 \begin{table}
+\caption{Execution times of \texttt{from\_X$_T$\_to\_Y$_T$} queries for \ctr, with starting and ending time restrictions and variating start and end line restrictions.}
 \begin{tabular}{|r|r|r|r|r|r|r|}
 \hline
 $t_{\Psi}$ & \texttt{WML} & \texttt{WMJ} & \texttt{from\_X$_{T}$\_to\_Y$_{T}$} & \texttt{from\_X$_{LT}$\_to\_Y$_{T}$} & \texttt{from\_X$_{T}$\_to\_Y$_{LT}$} & \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} \\
