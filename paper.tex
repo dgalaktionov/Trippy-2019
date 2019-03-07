@@ -449,11 +449,11 @@ Of course, \ctr~can also be used to efficiently obtain other interesting informa
 
 \subsection{Comparing \acumm, \ttctr~and \ctr}
 \label{sec:comp}
-Better show this after they have been both explained...
+To illustrate the application of each representation, as well as highlight the motivation for the development of \ctr, we present in this section a comparison of worst case time complexities of each query described in Section~\ref{sec:rq}.
 
 \begin{threeparttable}
 \centering
-\caption{Efficiency of \acumm~and \ctr~against the queries described in Section~\ref{sec:rq}}
+\caption{Worst case time complexities of the representations in Section~\ref{sec:ps}}
 \label{tab:queries}
 \begin{tabular}{|l|l|l|l|}
 \hline
@@ -467,8 +467,8 @@ Query &  \acumm & \ttctr & \ctr\\
 \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} & - & $O(|S|\times \ttctrq)$\tnote{be} & \ctrq\tnote{b} \\
 \texttt{board\_L$_T$} & O(1) & $O(|S|\times log(\bar{|J^l|}))$\tnote{beg} & $O(|S| \times \ctrq)$\tnote{be} \\
 \texttt{alight\_L$_T$} & O(1) & $O(|S|\times log(\bar{|J^l|}))$\tnote{bceg} & $O(|S| \times \ctrq)$\tnote{bce} \\
-\texttt{start\_L$_T$} & - & $O(|S|\times \ttctrq)$\tnote{be} & $O(log(|L|\times\bar{|J^l|}))$\tnote{fg} \\
-\texttt{end\_L$_T$} & - & $O(|S|\times \ttctrq)$\tnote{be}~~~ & $O(|S| \times \ctrq)$\tnote{be} \\
+\texttt{start\_L$_T$} & - & $O(|S|\times \ttctrq)$\tnote{be}~~~ & $O(log(|L|\times\bar{|J^l|}))$\tnote{fg} \\
+\texttt{end\_L$_T$} & - & Hard\tnote{d} & $O(|S| \times \ctrq)$\tnote{be} \\
 \texttt{board\_T} & $O(|L|)$\tnote{f} & Hard\tnote{d} & Hard\tnote{d} \\
 \texttt{alight\_T} & $O(|L|)$\tnote{f} & Hard\tnote{cd} & Hard\tnote{cd} \\
 \texttt{start\_T} & - & Hard\tnote{d} & $O(|L| \times log(|L|\times\bar{|J^l|}))$\tnote{fg}~~ \\
@@ -489,22 +489,23 @@ Query &  \acumm & \ttctr & \ctr\\
 \end{threeparttable}
 
 \medskip
-Before explaining the details of how each of these operations would be implemented in both representations, it is worth noting that the complexity of \ctrq~will depend on the restrictions that are applied, as they will yield different variations of Algorithm~\ref{alg:xy}, as explained by the end of the Section~\ref{sec:ctr}. Generally, the time complexity of \ctrq~with all the restrictions is bounded by one \FuncSty{GetRange} operation on \FuncSty{CSA} to restrict by a stop ID, one on \FuncSty{WML} to restrict by a line ID and finally another one on \FuncSty{WMJ} to restrict by jcodes, with a total complexity of $O(log(n\times|L|\times\bar{|J^l|}))$, being $n$ the size of the represented sequences. However, when only the time is restricted, every line that the queried stop belongs to must be considered, thus increasing the worst-case complexity to $O(log(n) + |L|\times log(|L|\times\bar{|J^l|}))$.
+Before explaining the details of how each of these operations would be implemented in both representations, it is worth noting that the complexity of \ctrq~will depend on the restrictions that are applied, as they will yield different variations of Algorithm~\ref{alg:xy}, as explained by the end of the Section~\ref{sec:ctr}. Generally, the time complexity of \ctrq~with all the restrictions is bounded by one \FuncSty{GetRange} operation on \FuncSty{CSA} to restrict by a stop ID, one on \FuncSty{WML} to restrict by a line ID and finally another one on \FuncSty{WMJ} to restrict by jcodes, with a total complexity of $O(log(n\times|L|\times\bar{|J^l|}))$, being $n$ the size of the represented sequences\footnote{While theoretically locating a pattern of size $p$ in a Suffix Array takes $O(p\times logn)$ time, in our case $p$ is bounded to 2 or 3 (in case of \texttt{from\_X\_to\_Y}). Furthermore, with a backward search implementation, only $p-1$ binary searches are needed.}.
+However, when only the time is restricted, every line that the queried stop belongs to must be considered, thus increasing the worst-case complexity to $O(log(n) + |L|\times log(|L|\times\bar{|J^l|}))$. Similarly, the complexity of \ttctrq~is normally a search in the \texttt{CSA} and a \FuncSty{GetRange} on the \texttt{WM} (if time is restricted), which would amount to $O(log(n) + log(bar{|J^l|}))$, although when only the time and not the line is restricted, we must perform a new query for every possible line, and the complexity increases to $O(|L|\times (log(n) + log(bar{|J^l|})))$, which is generally higher than the one from \ctrq.
 
 \begin{itemize}
-    \item \texttt{board\_X$_{LT}$} This can be solved easily in the \acumm, as there are aggregated matrices for boarding stops, even though it is necessary to access a separate matrix for every line queried, hence $O(l)$. For \ctr, the number of occurrences for the stop X is counted by delimiting its range on \FuncSty{D} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed. From this number we must subtract the occurrences of final stops, obtained by one end\_X$_{LT}$ with the same restrictions.
-    \item \texttt{alight\_X$_{LT}$} In \ctr, the only alighting stops that are explicitly represented are the final stops. To obtain an approximated count of the rest of them, we would need to extract and examine all the occurrences for \texttt{board\_W$_{LT}$} for every W that could have been boarded before X, as the worst-case time complexity of solving with its index operations is prohibitive. On the other hand, it can be solved much faster in \acumm~by accessing the alighting matrices.
-    \item \texttt{start\_X$_{LT}$} Can only be solved in \ctr, by delimiting the range for the pattern $\$X$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed.
-    \item \texttt{end\_X$_{LT}$} Can only be solved in \ctr, by delimiting the range for the pattern $X\$$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed.
+    \item \texttt{board\_X$_{LT}$} This can be solved easily in the \acumm, as there are aggregated matrices for boarding stops, even though it is necessary to access a separate matrix for every line queried, hence $O(l)$. For \ttctr, the number of occurrences for the stop X is counted by delimiting its range on \FuncSty{D} (with a constant time $select$ operation) and filtering down the \texttt{WM} if needed. For \ctr, the filtering is done through \FuncSty{WML} and \FuncSty{WMJ}, and after that we must subtract the occurrences of final stops, obtained by one end\_X$_{LT}$ with the same restrictions.
+    \item \texttt{alight\_X$_{LT}$} Both in \ttctr~and \ctr, the only alighting stops that are explicitly represented are the final stops. To obtain an approximated count of the rest of them, we would need to extract and examine all the occurrences for \texttt{board\_W$_{LT}$} for every W that could have been boarded before X, as the worst-case time complexity of solving with its index operations is prohibitive. On the other hand, it can be solved much faster in \acumm~by accessing the alighting matrices.
+    \item \texttt{start\_X$_{LT}$} Cannot be solved in \acumm. In the two other representations, we need to the range for the pattern $\$X$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed.
+    \item \texttt{end\_X$_{LT}$} In \ctr~it is solved similarly to \texttt{start\_X$_{LT}$}, by delimiting the range for the pattern $X\$$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed. It can be much more complex for \ttctr, where the only way to restrict a line is to make a new query for every stop that could have been boarded before X in that line, which is a problem detailed at the start of Section~\ref{sec:ctr}.
     \item \texttt{switch\_X$_{LT}$} Calculated as board\_X$_{LT}$ - start\_X$_{LT}$.
-    \item \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} Explained in detail in Algorithm~\ref{alg:xy}.
-    \item \texttt{board\_L$_T$} Straightforward in \acumm, as it only needs to access one matrix. While in \ctr~the total number of occurences of line L can be calculated in one $O(log|L|)$ operation (with additional filtering through \FuncSty{WMJ} if needed), we need to subtract the occurrences of start\_L$_T$ and end\_L$_T$, the later having a greater complexity of $O(|S| \times \ctrq)$.
-    \item \texttt{alight\_L$_T$} Can be approximated in \ctr~with board\_L$_T$, given that every user that boards on a line is expected to alight from it within a reasonable time.
-    \item \texttt{start\_L$_T$} Can only be solved in \ctr, by filtering down \FuncSty{WML} and \FuncSty{WMJ}, if needed, over the $\$$ section of the \FuncSty{CSA}.
-    \item \texttt{end\_L$_T$} Can only be solved in \ctr, by performing a end\_X$_{LT}$ for every X from the line L.
-    \item \texttt{board\_T} and \texttt{alight\_T} Although \acumm~and \ctr~could solve it by applying board\_L$_T$ $|L|$ times, this would imply a prohibitive cost for \ctr, where extracting all the trips would be preferred in practice.
+    \item \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} Explained in detail in Algorithm~\ref{alg:xy}. In \ttctr~the $|S|$ factor only takes effect if the line (or time) for Y must be restricted, as for \texttt{end\_X$_{LT}$}.
+    \item \texttt{board\_L$_T$} Straightforward in \acumm, as it only needs to access one matrix. For \ttctr~we must through the \texttt{WM} for every stop from L. While in \ctr~the total number of occurences of line L can be calculated in one $O(log|L|)$ operation (with additional filtering through \FuncSty{WMJ} if needed), we need to subtract the occurrences of start\_L$_T$ and end\_L$_T$, the later having a greater complexity of $O(|S| \times \ctrq)$.
+    \item \texttt{alight\_L$_T$} Can be approximated both in \ttctr~and \ctr~with board\_L$_T$, given that every user that boards on a line is expected to alight from it within a reasonable time.
+    \item \texttt{start\_L$_T$} Trivially solved in \ctr, by filtering down \FuncSty{WML} and \FuncSty{WMJ}, if needed, over the $\$$ section of the \FuncSty{CSA}. On the other hand, for \ttctr~the \texttt{CSA} needs to be queried with the $\$X$ pattern for every X from L.
+    \item \texttt{end\_L$_T$} Can be solved in \ctr, by performing a end\_X$_{LT}$ for every X from the line L. If we did the same for \ttctr, we would end up with a complexity of $O(|S|^2\times\ttctrq)$, which we consider prohibitive.
+    \item \texttt{board\_T} and \texttt{alight\_T} Although \acumm~and \ctr~could solve it by applying board\_L$_T$ $|L|$ times, this would imply a prohibitive cost for both \ttctr~and \ctr, where extracting all the trips would be preferred in practice.
     \item \texttt{start\_T} Solved in the \ctr~by applying \texttt{start\_X$_{LT}$} $|L|$ times.
-    \item \texttt{end\_T} Neither of our representations can solve this query efficiently, although it could be approximated by \texttt{start\_T} in CTR.
+    \item \texttt{end\_T} None of our representations can solve this query efficiently, although it could be approximated by \texttt{start\_T} in CTR.
     \item \texttt{load\_X$_{LT}$} This can be easily calculated in \acumm~as detailed in Section~\ref{sec:acumm}. \marginpar{Tirso please explain how!}
 \end{itemize}
 
