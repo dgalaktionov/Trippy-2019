@@ -23,6 +23,7 @@
 \newcommand{\ctr}{XCTR}
 \newcommand{\ttctr}{TTCTR}
 \newcommand{\ctrq}{XCTRc}
+\newcommand{\ttctrq}{TTCTRc}
 
 \begin{document}
 %
@@ -338,7 +339,7 @@ With \ttctr~we obtain a clear separation between the spatial representation of t
 \label{sec:ctr}
 A fundamental weakness of \ttctr~is that it requires several binary search operations over the \texttt{CSA} in the following cases:
 \begin{itemize}
-    \item We are interested in the number of passengers that started their trip at a stop $s$ and a time window $t_a...t_z$, but from \textbf{any line} (\texttt{start\_X$_{T}$} from Section~\ref{sec:rq}). As $jcodes$ are relative to lines, we must make a separate query for each possible $(s:l_i) \forall l_i \in L$ combinations.
+    \item We are interested in the number of passengers that started their trip at a stop $s$ and a time window $t_a...t_z$, but from \textbf{any line} (\texttt{start\_X$_{T}$} from Section~\ref{sec:rq}). As $jcodes$ are relative to lines, we must make a separate query for each possible $(s:l_i) \forall l_i \in L$ combination.
     \item We need to restrict the line of a final stop, in queries such as \texttt{end\_X$_{L}$} or \texttt{from\_X\_to\_Y$_{L}$} (and similar variations). Because the final stops belong to separate entries of the vocabulary that do not encode line identifiers, to restrict a stop $Y\in S$ to a line $l\in L$ we need to search for every possible expanded pattern $W:l,Y...$, for every stop $W$ from the line $l$ that could have been boarded before alighting at $Y$. While it looks tempting to address this issue by modifying the design of \ttctr~so that final stops also encode line identifiers, this would in turn make queries that do not restrict the line of the final stop inefficient, and we would need to perform a new query for every combination of $(s:l_i) \forall l_i \in L$, as in the previous case. \marginpar{\tiny Viendo los experimentos, uno se puede preguntar si no habria quedado mejor meter lineas en paradas finales...}
 \end{itemize}
 
@@ -446,41 +447,41 @@ It is trivial to reuse the Algorithm~\ref{alg:xy} to answer queries with less co
 
 Of course, \ctr~can also be used to efficiently obtain other interesting information about trips, such as the top k most boarded stops, as shown in \cite{brisaboa2018compact}, with the additional possibility of differentiating stops that are only used to switch lines in \ctr. However, there is no known way of using this representation to obtain other kinds of information efficiently (e.g. the number of passengers in a journey between two stops).
 
-\subsection{Comparing \acumm~and \ctr}
+\subsection{Comparing \acumm, \ttctr~and \ctr}
 \label{sec:comp}
-Better show this after they have been both explained... \marginpar{\tiny Include TTCTR in the table}
+Better show this after they have been both explained...
 
 \begin{threeparttable}
 \centering
 \caption{Efficiency of \acumm~and \ctr~against the queries described in Section~\ref{sec:rq}}
 \label{tab:queries}
-\begin{tabular}{|l|l|l|}
+\begin{tabular}{|l|l|l|l|}
 \hline
-Query &  \acumm & \ctr\\
+Query &  \acumm & \ttctr & \ctr\\
 \hline
-\texttt{board\_X$_{LT}$} & $O(l)$\tnote{a} & \ctrq\tnote{b} \\
-\texttt{alight\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} \\
-\texttt{start\_X$_{LT}$} & - & \ctrq\tnote{b} \\
-\texttt{end\_X$_{LT}$} & - & \ctrq\tnote{b} \\
-\texttt{switch\_X$_{LT}$} & - & \ctrq\tnote{b} \\
-\texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} & - & \ctrq\tnote{b} \\
-\texttt{board\_L$_T$} & O(1) & $O(|S| \times \ctrq)$\tnote{be} \\
-\texttt{alight\_L$_T$} & O(1) & $O(|S| \times \ctrq)$\tnote{bce} \\
-\texttt{start\_L$_T$} & - & $O(log(|L|\times\bar{|J^l|}))$\tnote{fg} \\
-\texttt{end\_L$_T$} & - & $O(|S| \times \ctrq)$\tnote{be} \\
-\texttt{board\_T} & $O(|L|)$\tnote{f} & Hard\tnote{d} \\
-\texttt{alight\_T} & $O(|L|)$\tnote{f} & Hard\tnote{cd} \\
-\texttt{start\_T} & - & $O(|L| \times log(|L|\times\bar{|J^l|}))$\tnote{fg}~~ \\
-\texttt{end\_T} & - & Hard\tnote{d} \\
-\texttt{load\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} \\
+\texttt{board\_X$_{LT}$} & $O(l)$\tnote{a} & $O(l\times log(\bar{|J^l|}))$\tnote{abg} & \ctrq\tnote{b} \\
+\texttt{alight\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} & Hard\tnote{cd} \\
+\texttt{start\_X$_{LT}$} & - & \ttctrq\tnote{b} & \ctrq\tnote{b} \\
+\texttt{end\_X$_{LT}$} & - & $O(|S|\times \ttctrq)$\tnote{be} & \ctrq\tnote{b} \\
+\texttt{switch\_X$_{LT}$} & - & \ttctrq\tnote{b} & \ctrq\tnote{b} \\
+\texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} & - & $O(|S|\times \ttctrq)$\tnote{be} & \ctrq\tnote{b} \\
+\texttt{board\_L$_T$} & O(1) & $O(|S|\times log(\bar{|J^l|}))$\tnote{beg} & $O(|S| \times \ctrq)$\tnote{be} \\
+\texttt{alight\_L$_T$} & O(1) & $O(|S|\times log(\bar{|J^l|}))$\tnote{bceg} & $O(|S| \times \ctrq)$\tnote{bce} \\
+\texttt{start\_L$_T$} & - & $O(|S|\times \ttctrq)$\tnote{be} & $O(log(|L|\times\bar{|J^l|}))$\tnote{fg} \\
+\texttt{end\_L$_T$} & - & $O(|S|\times \ttctrq)$\tnote{be}~~~ & $O(|S| \times \ctrq)$\tnote{be} \\
+\texttt{board\_T} & $O(|L|)$\tnote{f} & Hard\tnote{d} & Hard\tnote{d} \\
+\texttt{alight\_T} & $O(|L|)$\tnote{f} & Hard\tnote{cd} & Hard\tnote{cd} \\
+\texttt{start\_T} & - & Hard\tnote{d} & $O(|L| \times log(|L|\times\bar{|J^l|}))$\tnote{fg}~~ \\
+\texttt{end\_T} & - & Hard\tnote{d} & Hard\tnote{d} \\
+\texttt{load\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} & Hard\tnote{cd} \\
 \hline
 \end{tabular}
 
 \begin{tablenotes}
 \item[a] $l$ is the number of lines we restrict to.
-\item[b] The complexity of \ctrq~ varies with the restrictions.
+\item[b] The complexity of varies with the restrictions. See discussion.
 \item[c] May include false positives.
-\item[d] Not practical to solve with the indexing capabilities of \ctr.
+\item[d] Not practical to solve with the indexing capabilities of this representation.
 \item[e] $|S|$ is the number of stops in the line L.
 \item[f] $|L|$ is the total number of lines represented.
 \item[g] $\bar{|J^l|}$ is the average number of jcodes per line.
