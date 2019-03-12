@@ -184,33 +184,31 @@ Finally, it is possible to introduce a \textbf{user} identity, with an anonymize
 
 \subsection{Relevant queries}
 \label{sec:rq}
-In the context of public transportation networks, we are interested in solving two kinds of queries:
+In the context of public transportation networks, we are interested in solving two kinds of queries, which we will present with a non-comprehensive list of examples that can be solved with the structures proposed in this work:
 
 \begin{enumerate}[A)]
-    \item Aggregation of passengers, asking for the gross number of users that boarded or alighted within an area and a time window. Furthermore, it can be also interesting to obtain the average load of a bus or a train between any two stops from its line.
-    \item Movement patterns, or queries that focus on the sequence of trip stages. Examples of such queries are the number of times a stop was used to switch lines or the number of trips that started on a stop with another specific stop as the final destination. 
+    \item Aggregation of passengers, asking for the gross number of users that boarded or alighted within an area and a time window. Furthermore, it can be also interesting to obtain the average load of a bus or a train between any two stops from its line. Some of those queries are:
+    \begin{itemize}
+        \item \texttt{board\_X$_{LT}$} Number of times that stop X is boarded, optionally restricting to a line L and a time range T.
+        \item \texttt{alight\_X$_{LT}$} Number of times that stop X is alighted, optionally restricting to a line L and a time range T.
+        \item \texttt{board\_L$_T$}  Number of times that line L is boarded, optionally restricting to a time range T.
+        \item \texttt{alight\_L$_T$} Number of times that line L is alighted, optionally restricting to a time range T.
+        \item \texttt{board\_T} Number of times a user boards within a time range T.
+        \item \texttt{alight\_T} Number of times a user alights within a time range T.
+        \item \texttt{load\_X$_{LT}$} The average number of passengers traveling from the stop X to its next stop in the line L within the time range T. Can also be seen as the average load of a transport vehicle.
+    \end{itemize}
+    \item Movement patterns, or queries that focus on the sequence of trip stages. With his kind of queries we can obtain the number of times a stop was used to switch lines or the number of trips that started on a stop with another specific stop as the final destination. In this work we consider the following queries of this kind:
+    \begin{itemize}
+        \item \texttt{start\_X$_{LT}$} User trips starting at a stop X, optionally restricting to a line L and a time range T.
+        \item \texttt{end\_X$_{LT}$} User trips ending at a stop X, optionally restricting to a line L and a time range T.
+        \item \texttt{switch\_X$_{LT}$} Number of trips in which the stop X was used to switch lines, optionally restricting to a line L and a time range T.
+        \item \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} User trips that originate at stop X to end at stop Y, both being optionally restricted to a line and time range.
+        \item \texttt{start\_L$_T$} User trips starting at any stop from the line L, optionally restricting to a time range T.
+        \item \texttt{end\_L$_T$} User trips ending at any stop from the line L, optionally restricting to a time range T.
+        \item \texttt{start\_T} User trips starting within a time range T.
+        \item \texttt{end\_T} User trips ending within a time range T.
+    \end{itemize}
 \end{enumerate}
-
-The following is a non-comprehensive list of query types that can be efficiently solved with the structures proposed in this work:
-\marginpar{\tiny Nieves: Reorganizar seguindo a clasificación}
-\begin{itemize}
-    \item \texttt{board\_X$_{LT}$} Number of times that stop X is boarded, optionally restricting to a line L and a time range T.
-    \item \texttt{alight\_X$_{LT}$} Number of times that stop X is alighted, optionally restricting to a line L and a time range T.
-    \item \texttt{start\_X$_{LT}$} User trips starting at a stop X, optionally restricting to a line L and a time range T.
-    \item \texttt{end\_X$_{LT}$} User trips ending at a stop X, optionally restricting to a line L and a time range T.
-    \item \texttt{switch\_X$_{LT}$} Number of trips in which the stop X was used to switch lines, optionally restricting to a line L and a time range T.
-    \item \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} User trips that originate at stop X to end at stop Y, both being optionally restricted to a line and time range.
-    \item \texttt{board\_L$_T$}  Number of times that line L is boarded, optionally restricting to a time range T.
-    \item \texttt{alight\_L$_T$} Number of times that line L is alighted, optionally restricting to a time range T.
-    \item \texttt{start\_L$_T$} User trips starting at any stop from the line L, optionally restricting to a time range T.
-    \item \texttt{end\_L$_T$} User trips ending at any stop from the line L, optionally restricting to a time range T.
-    \item \texttt{board\_T} Number of times a user boards within a time range T.
-    \item \texttt{alight\_T} Number of times a user alights within a time range T.
-    \item \texttt{start\_T} User trips starting within a time range T.
-    \item \texttt{end\_T} User trips ending within a time range T.
-    \item \texttt{load\_X$_{LT}$} The average number of passengers traveling from the stop X to its next stop in the line L within the time range T. Can also be seen as the average load of a transport vehicle.
-
-\end{itemize}
 
 \section{Proposed Structures}
 \label{sec:ps}
@@ -463,19 +461,20 @@ Query &  \acumm & \ttctr & \ctr\\
 \hline
 \texttt{board\_X$_{LT}$} & $O(l)$\tnote{a} & $O(l\times \log(\bar{|J^l|}))$\tnote{abg} & \ctrq\tnote{b} \\
 \texttt{alight\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} & Hard\tnote{cd} \\
+\texttt{board\_L$_T$} & O(1) & $O(|S|\times \log(\bar{|J^l|}))$\tnote{beg} & $O(|S| \times \ctrq)$\tnote{be} \\
+\texttt{alight\_L$_T$} & O(1) & $O(|S|\times \log(\bar{|J^l|}))$\tnote{bceg} & $O(|S| \times \ctrq)$\tnote{bce} \\
+\texttt{board\_T} & $O(|L|)$\tnote{f} & Hard\tnote{d} & Hard\tnote{d} \\
+\texttt{alight\_T} & $O(|L|)$\tnote{f} & Hard\tnote{cd} & Hard\tnote{cd} \\
+\texttt{load\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} & Hard\tnote{cd} \\
+\hline
 \texttt{start\_X$_{LT}$} & - & \ttctrq\tnote{b} & \ctrq\tnote{b} \\
 \texttt{end\_X$_{LT}$} & - & $O(|S|\times \ttctrq)$\tnote{be} & \ctrq\tnote{b} \\
 \texttt{switch\_X$_{LT}$} & - & \ttctrq\tnote{b} & \ctrq\tnote{b} \\
 \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} & - & $O(|S|\times \ttctrq)$\tnote{be} & \ctrq\tnote{b} \\
-\texttt{board\_L$_T$} & O(1) & $O(|S|\times \log(\bar{|J^l|}))$\tnote{beg} & $O(|S| \times \ctrq)$\tnote{be} \\
-\texttt{alight\_L$_T$} & O(1) & $O(|S|\times \log(\bar{|J^l|}))$\tnote{bceg} & $O(|S| \times \ctrq)$\tnote{bce} \\
 \texttt{start\_L$_T$} & - & $O(|S|\times \ttctrq)$\tnote{be}~~~ & $O(\log(|L|\times\bar{|J^l|}))$\tnote{fg} \\
 \texttt{end\_L$_T$} & - & Hard\tnote{d} & $O(|S| \times \ctrq)$\tnote{be} \\
-\texttt{board\_T} & $O(|L|)$\tnote{f} & Hard\tnote{d} & Hard\tnote{d} \\
-\texttt{alight\_T} & $O(|L|)$\tnote{f} & Hard\tnote{cd} & Hard\tnote{cd} \\
 \texttt{start\_T} & - & Hard\tnote{d} & $O(|L| \times \log(|L|\times\bar{|J^l|}))$\tnote{fg}~~ \\
 \texttt{end\_T} & - & Hard\tnote{d} & Hard\tnote{d} \\
-\texttt{load\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} & Hard\tnote{cd} \\
 \hline
 \end{tabular}
 
@@ -497,18 +496,18 @@ However, when only the time is restricted, every line that the queried stop belo
 \begin{itemize}
     \item \texttt{board\_X$_{LT}$} This can be solved easily in the \acumm, as there are aggregated matrices for boarding stops, even though it is necessary to access a separate matrix for every line queried, hence $O(l)$. For \ttctr, the number of occurrences for the stop X is counted by delimiting its range on \FuncSty{D} (with a constant time $select$ operation) and filtering down the \texttt{WM} if needed. For \ctr, the filtering is done through \FuncSty{WML} and \FuncSty{WMJ}, and after that we must subtract the occurrences of final stops, obtained by one \texttt{end\_X$_{LT}$} with the same restrictions.
     \item \texttt{alight\_X$_{LT}$} Both in \ttctr~and \ctr, the only alighting stops that are explicitly represented are the final stops. To obtain an approximated count of the rest of them, we would need to extract and examine all the occurrences for \texttt{board\_W$_{LT}$} for every W that could have been boarded before X, as the worst-case time complexity of solving with their index operations is prohibitive. On the other hand, it can be solved much faster in \acumm~by accessing the alighting matrices.
+    \item \texttt{board\_L$_T$} Straightforward in \acumm, as it only needs to access one matrix. For \ttctr~we must filter through the \texttt{WM} for every stop from L. While in \ctr~the total number of occurrences of line L can be calculated in one $O(\log|L|)$ operation (with additional filtering through \FuncSty{WMJ} if needed), we need to subtract the occurrences of start\_L$_T$ and end\_L$_T$, the later having a greater complexity of $O(|S| \times \ctrq)$.
+    \item \texttt{alight\_L$_T$} Can be approximated both in \ttctr~and \ctr~with board\_L$_T$, given that every user that boards on a line is expected to alight from it within a reasonable time.
+    \item \texttt{board\_T} and \texttt{alight\_T} Although \acumm, \ttctr~and \ctr~could solve it by applying board\_L$_T$ $|L|$ times, this would imply a prohibitive cost for both \ttctr~and \ctr, where extracting all the trips would be preferred in practice.
+    \item \texttt{load\_X$_{LT}$} This can be easily calculated in \acumm~as detailed in Section~\ref{sec:acumm}. \marginpar{Tirso please explain how!}
     \item \texttt{start\_X$_{LT}$} Cannot be solved in \acumm. In the two other representations, we need to the range for the pattern $\$X$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed.
     \item \texttt{end\_X$_{LT}$} In \ctr~it is solved similarly to \texttt{start\_X$_{LT}$}, by delimiting the range for the pattern $X\$$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed. It can be much more complex for \ttctr, where the only way to restrict a line is to make a new query for every stop that could have been boarded before X in that line, which is a problem detailed at the start of Section~\ref{sec:ctr}.
     \item \texttt{switch\_X$_{LT}$} Calculated as board\_X$_{LT}$ - start\_X$_{LT}$.
     \item \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} Explained in detail in Algorithm~\ref{alg:xy}. In \ttctr~the $|S|$ factor only takes effect if the line (or time) for Y must be restricted, as for \texttt{end\_X$_{LT}$}.
-    \item \texttt{board\_L$_T$} Straightforward in \acumm, as it only needs to access one matrix. For \ttctr~we must filter through the \texttt{WM} for every stop from L. While in \ctr~the total number of occurrences of line L can be calculated in one $O(\log|L|)$ operation (with additional filtering through \FuncSty{WMJ} if needed), we need to subtract the occurrences of start\_L$_T$ and end\_L$_T$, the later having a greater complexity of $O(|S| \times \ctrq)$.
-    \item \texttt{alight\_L$_T$} Can be approximated both in \ttctr~and \ctr~with board\_L$_T$, given that every user that boards on a line is expected to alight from it within a reasonable time.
     \item \texttt{start\_L$_T$} Trivially solved in \ctr, by filtering down \FuncSty{WML} and \FuncSty{WMJ}, if needed, over the $\$$ section of the \FuncSty{CSA}. On the other hand, for \ttctr~the \texttt{CSA} needs to be queried with the $\$X$ pattern for every stop X from line $l$.
     \item \texttt{end\_L$_T$} Can be solved in \ctr, by performing a end\_X$_{LT}$ for every stop X from the line $l$. If we did the same for \ttctr, we would end up with a complexity of $O(|S|^2\times\ttctrq)$, which we consider prohibitive.
-    \item \texttt{board\_T} and \texttt{alight\_T} Although \acumm, \ttctr~and \ctr~could solve it by applying board\_L$_T$ $|L|$ times, this would imply a prohibitive cost for both \ttctr~and \ctr, where extracting all the trips would be preferred in practice.
     \item \texttt{start\_T} Solved in the \ctr~by applying \texttt{start\_X$_{LT}$} $|L|$ times.
     \item \texttt{end\_T} None of our representations can solve this query efficiently, although it could be approximated by \texttt{start\_T} in CTR.
-    \item \texttt{load\_X$_{LT}$} This can be easily calculated in \acumm~as detailed in Section~\ref{sec:acumm}. \marginpar{Tirso please explain how!}
 \end{itemize}
 
 \section{Experiments}
