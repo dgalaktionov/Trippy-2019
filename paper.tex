@@ -214,7 +214,7 @@ In the context of public transportation networks, we are interested in solving t
 \label{sec:ps}
 As of today, we are not aware of any indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{sec:rq}. For this reason, we propose two data structures, \acumm~and~\ttctr. The former is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B. Finally, we introduce a more versatile alternative to \ttctr~that we call \ctr.
 
-\subsection{Common Structures}
+\subsection{Common Data Structures}
 \label{sec:cs}
 Both \acumm~and \ttctr~need a network representation to be operated, along with information about the transport vehicle journeys. Therefore, the following structures represent a network with stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
 
@@ -338,8 +338,8 @@ With \ttctr~we obtain a clear separation between the spatial representation of t
 \label{sec:ctr}
 A fundamental weakness of \ttctr~is that it requires several binary search operations over the \texttt{CSA} in the following cases:
 \begin{itemize}
-    \item We are interested in the number of passengers that started their trip at a stop $s$ and a time window $t_a...t_z$, but from \textbf{any line} (\texttt{start\_X$_{T}$} from Section~\ref{sec:rq}). As $jcodes$ are relative to lines, we must make a separate query for each possible $(X_{l_i}) \forall l_i \in L$ combination.
-    \item We need to restrict the line of a final stop, in queries such as \texttt{end\_X$_{L}$} or \texttt{from\_X\_to\_Y$_{L}$} (and similar variations). Because the final stops belong to separate entries of the vocabulary that do not encode line identifiers, to restrict a stop $Y\in S$ to a line $l\in L$ we need to search for every possible expanded pattern $W_l,Y...$, for every stop $W$ from the line $l$ that could have been boarded before alighting at $Y$. While it looks tempting to address this issue by modifying the design of \ttctr~so that final stops also encode line identifiers, this would in turn make queries that do not restrict the line of the final stop inefficient, and we would need to perform a new query for every combination of $(s_{l_i}) \forall l_i \in L$, as in the previous case. \marginpar{\tiny Viendo los experimentos, uno se puede preguntar si no habria quedado mejor meter lineas en paradas finales...}
+    \item We are interested in the number of passengers that started their trip at a stop $s$ and a time window $t_a...t_z$, but from \textbf{any line} (\texttt{start\_X$_{T}$} from Section~\ref{sec:rq}). As $jcodes$ are relative to lines, we must make a separate query for each possible pair $(X, l_i) \forall l_i \in L$.
+    \item We need to restrict the line of a final stop, in queries such as \texttt{end\_X$_{L}$} or \texttt{from\_X\_to\_Y$_{L}$} (and similar variations). Because the final stops belong to separate entries of the vocabulary that do not encode line identifiers, to restrict a stop $Y\in S$ to a line $l\in L$ we need to search for every possible expanded pattern $W_l,Y...$, for every stop $W$ from the line $l$ that could have been boarded before alighting at $Y$. While it looks tempting to address this issue by modifying the design of \ttctr~so that final stops also encode line identifiers, this would in turn make queries that do not restrict the line of the final stop inefficient, and we would need to perform a new query for every combination of $(Y, l_i) \forall l_i \in L$, as in the previous case. \marginpar{\tiny Viendo los experimentos, uno se puede preguntar si no habria quedado mejor meter lineas en paradas finales...}
 \end{itemize}
 
 These weaknesses motivated us to develop a second version, \ctr, which reduces the complexity of the queries that restrict the final line, and delegates line checks on a new WM, allowing for more space-time trade-off. As in \ttctr, the input trips need to be sorted by the same criteria, but in \ctr~we use three complementary structures to represent each component of the sequence, as shown in Figure~\ref{fig:example_xctr}:
@@ -447,9 +447,9 @@ It is trivial to reuse the Algorithm~\ref{alg:xy} to answer queries with less co
 
 Of course, \ctr~can also be used to efficiently obtain other interesting information about trips, such as the top k most boarded stops, as shown in \cite{brisaboa2018compact}, with the additional possibility of differentiating stops that are only used to switch lines in \ctr. However, there is no known way of using this representation to obtain other kinds of information efficiently (e.g. the number of passengers in a journey between two stops).
 
-\subsection{Comparing \acumm, \ttctr~and \ctr}
+\subsection{Analyzing \acumm, \ttctr~and \ctr}
 \label{sec:comp}
-To illustrate the application of each representation, as well as highlight the motivation for the development of \ctr, we present in this section a comparison of worst case time complexities of each query described in Section~\ref{sec:rq}.
+To illustrate the application of each representation, as well as highlight the motivation for the development of \ctr, in this section we discuss in detail the worst case time complexities of each query described in Section~\ref{sec:rq}.
 
 \begin{threeparttable}
 \centering
