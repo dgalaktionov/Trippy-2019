@@ -20,10 +20,13 @@
 \usepackage[margin=0pt,skip=1pt]{subcaption}
 
 \newcommand{\acumm}{T-Matrices} % T is for Total!
+\newcommand{\acummname}{\mathsf{Trip-Matrices}}
 \newcommand{\ctr}{XCTR}
+\newcommand{\ctrname}{\mathsf{eXtended~Compact~Trip~Representation}}
 \newcommand{\ttctr}{TTCTR}
 \newcommand{\ctrq}{XCTRc}
 \newcommand{\ttctrq}{TTCTRc}
+\newcommand{\ttctrname}{\mathsf{Topology\&Trip-aware~Compact~Trip~Representation}}
 
 \begin{document}
 %
@@ -59,18 +62,21 @@ The abstract should briefly summarize the contents of the paper in
 %
 %
 %
-\section{Introduction: sin hacer (queda para el final)}
-We took the idea from our SPIRE paper and we made it great, using ZSTD compression and other tricks to improve the time complexity of the queries for the \ctr. Regarding \acumm, it was not possible to improve its speed (as it was already a few memory accesses per query), but we managed to compress it without increasing time complexity. We rock.
+\section{Introduction}
+With an increasing adoption of passenger tracking technology on public transportation networks, it is becoming necessary to store a constantly growing amount of information regarding the usage (demand) of the networks, which is different from the well-known information of stops and timetables (offer). To enable analysis over these large collections of data, a compact yet indexed representation is needed that, unlike the works that focus on indexing moving objects, allows for representation and querying of relevant network elements related to passenger trips.
 
-If possible, cite applications of our kind of analysis for transport/advertising companies, to show that what we are doing is useful. One example is \cite{tu2018spatial}. Another is \cite{zhang2017targeted}. And by the way, the guys in \cite{weng2018mining} do some analysis with data that has already boarding and alighting stops!
+A practical representation for this information that supports efficient indexing would have numerous possible applications, such as transportation companies interested in studying the ridership \cite{tu2018spatial} or improve the efficiency of the network, such as in \cite{weng2018mining}. Another application that is enabled by such analysis is the targeted advertising \cite{zhang2017targeted}, as being able to predict travel patterns is extremely useful for an advertiser.
 
-These guys \cite{wang2014aggregated} made it so boring that they are probably not worth citing, but I'm keeping them here for now because they separate fridays and types of days, even though we don't care much about that anymore. OR DO WE?
+%These guys \cite{wang2014aggregated} made it so boring that they are probably not worth citing, but I'm keeping them here for now because they separate fridays and types of days, even though we don't care much about that anymore. OR DO WE?
 
-Aqui no estaria mal, ademas de motivar ;) completar con la estructura del paper, y de paso decir que es lo nuevo VS lo de SPIRE. (ej. Esta es una version extendida del X, donde hemos tratado de solucionar nuevas operaciones como x..., viendo que algunas de ellas se volvían ineficientes en el CTR original, decidimos realizar una nueva variante (\ctr), que permite responder más consultas eficientemente. Así, en la Seccion 2 T-R, en la seccon 3 - MODELO , en la seccion 4 mostramos nuestras propuestas y cómo utilizarlas para resolver consutlas... etc etc)
+In this work we introduce our approach on a flexible and efficient representation for analyzing the demand of real transportation networks using compact data structures. We have observed that there are two different kinds of queries that can be considered as useful to study the movement patterns of public transport users, for which we developed two complementary representations: \acumm~and \ttctr, with a second version for the later called \ctr, that addresses some of the limitations of \ttctr~to efficiently support more types of queries.
 
+\subsubsection{Outline}
+This work is structured as follows. We start with a detailed review of related works in Section~\ref{sec:rw}, where we discuss the state of the art for trajectory indexing, mining and the underlying structures that our representations depend on. It is followed by Section~\ref{sec:model}, where we explain our design for a data model that can support relevant queries over transportation networks. In Section~\ref{sec:ps} we detail the composition of our representations and analyze their time efficiency for the targeted queries, followed by a practical analysis in Section~\ref{sec:exp}, where we evaluate the performance on a real transportation network. Finally, the conclusions can be found in Section~\ref{sec:conc}.
 
 
 \section{Related works}
+\label{sec:rw}
 \subsection{Trajectory indexing}
 Literature on spatial trajectory indexing can be categorized by the nature of the trajectories: they can be either constrained to a network or in free space (often called moving objects). While there are well-known queries for indexes that work on moving objects in free space \cite{DBLP:conf/vldb/PfoserJT00}, the network constrained trajectory indexes cover more diverse querying needs, as different networks involve different kinds of challenges (as in vehicular road network vs public transportation network), and also because the intended application may vary (analyzing trip-chaining patterns vs number of passengers within a time window). A comprehensive review on indexing methods can be found in \cite[Chapter 4]{DBLP:books/sp/PelekisT14}, to which we shall expand in the rest of this section to mention the most notable indexes and some new developments.
 
@@ -100,13 +106,13 @@ A recent compact data structure named {\em CiNCT} has been proposed in \cite{koi
 \subsection{Trajectory data mining}
 Currently there are several known techniques that would allow to collect data regarding users' trips over a public transportation network. Numerous works exist where those trajectories are mined from the transactions of smart cards \cite{bhaskar2015passenger,wang2014aggregated}. This can be complemented with information derived from GPS devices, as shown in \cite{ma2014development}. Alternatively, reliable trajectories may be extracted relying on positioning obtained from cellular networks, as proven by \cite{liu2017exploring}.
 
-In addition, the authors of \cite{tao2014exploring} have specifically tackled the challenge of reconstructing full trajectories, accounting for trip-chaining, by using data obtained from smart cards. Furthermore, in \cite{alsger2016validating} it is also proven that not only the alighting stops, but also the (last) destination stop of a trip can be estimated from boarding data gathered by a smart card, within a reasonable accuracy.
+Because smart card methods usually provide only information about boarding stops, there are works that study the challenge of inferring alighting stops from passengers \ref{wang2011review}. In addition, the authors of \cite{tao2014exploring} have specifically tackled the challenge of reconstructing full trajectories, accounting for trip-chaining, by using data obtained from smart cards. Furthermore, in \cite{alsger2016validating} it is also proven that not only the alighting stops, but also the (last) destination stop of a trip can be estimated from boarding data gathered by a smart card, within a reasonable accuracy.
 
 This summarized review proves that, although we were not able to access real data from a public transportation company for this work, such curated information about users' trips can indeed be obtained and used for our proposed representations.
 
 \subsection{Underlying structures and algorithms}
 \subsubsection{Summed Area Tables}
-I mean maybe we should mention them :-)
+The Summed Area Tables were first introduced in computer graphics \cite{crow1984summed} to speed up the mipmapping process.\marginpar{\tiny part of the explanation of \acumm~should go in here}
 
 \subsubsection{Bitvectors}
 \label{sec:bit}
@@ -154,6 +160,7 @@ This structure allows to answer the following operations in $O(\log\sigma)$ time
 While a compression method is proposed in \cite{CNO15} by using canonical Huffman encoding on the symbols, it could not be applied in our work because it severely reduces the efficiency of $range_{a,b}(S,i,j)$. Instead, we focused on compressing the bitvectors and using ad-hoc optimizations to reduce the average height of our WMs.
 
 \section{Our model for compact trip representation}
+\label{sec:model}
 In our previous structures introduced in \cite{brisaboa2018new}, we propose a work-in-progress model to represent the demand information for a public transportation network, as seen in the Figure~\ref{fig:er}.
 
 \begin{figure}
@@ -212,7 +219,7 @@ In the context of public transportation networks, we are interested in solving t
 
 \section{Proposed Structures}
 \label{sec:ps}
-As of today, we are not aware of any indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{sec:rq}. For this reason, we propose two data structures, \acumm~and~\ttctr. The former is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B. Finally, we introduce a more versatile alternative to \ttctr~that we call \ctr.
+As of today, we are not aware of any indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{sec:rq}. For this reason, we propose two data structures, \acummname~(\acumm)~and~\ttctrname~(\ttctr). The former is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B. Finally, we introduce a more versatile alternative to \ttctr~that we call \ctrname~(\ctr).
 
 \subsection{Common Data Structures}
 \label{sec:cs}
@@ -732,6 +739,7 @@ The only query for which \ttctr~is clearly preferred over \ctr~is \texttt{board\
 \end{figure}
 
 \section{Conclusions}
+\label{sec:conc}
 Speak about how cool would it be to have a single structure that could to it all. Pitch for our next paper with Gonzalo!
 
 %
