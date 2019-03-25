@@ -17,6 +17,7 @@
 \usepackage[linesnumbered,commentsnumbered,boxed]{algorithm2e}
 \usepackage{amsmath}
 \usepackage{threeparttable}
+\usepackage{multirow}
 \usepackage[margin=0pt,skip=1pt]{subcaption}
 
 \newcommand{\acumm}{T-Matrices} % T is for Total!
@@ -286,6 +287,7 @@ Due to comparison reasons it has been also built these sampled structures using 
 
 
 \subsection{\ttctr}
+\label{sec:ttctr}
 A user trip can be represented by the stops from the transportation system that were boarded by a user, so from now on we will consider a trip as a sequence of triplets $<s,l,j>$, where $s$, $l$ are, respectively, stop and line identifiers, while $j$ are the journey codes corresponding to the journeys that compose the trip. These triplets describe a trip in a consecutive fashion, on the same order as the stops were boarded. Additionally, as we are interested in knowing where the trips end, we also represent the last stop where the user has alighted, which line and journey will logically match the line and journey of the last boarding stop. Although it is generally hard to obtain information about the last destination stop of a trip, many transportation companies are investing effort in providing it, either by implementing systems to keep track of users as they leave their system or estimating it based on previous trips made by that user \cite{alsger2016validating}.
 
 \ttctr~was introduced in \cite{brisaboa2018new}, where the spatial component (the pairs $(s,l)$ for the stops and lines of a trip) is represented with a \texttt{CSA} where each unique pair $(s,l)$ is encoded as an integer $id$ in the input sequence $T[1,n]$ that is used to build the \texttt{CSA}.
@@ -557,7 +559,7 @@ The space occupied by the common structures is reflected in Table~\ref{tab:commo
     \end{tabular}
 \end{table}
 
-In Table~\ref{tab:ttctr} we analyze the space occupied by the two structures of \ttctr: a \texttt{CSA} that encodes stops and their lines, and a \texttt{WM} that encodes journey codes.
+In Table~\ref{tab:ttctr} we analyze the space occupied by the two structures of \ttctr: a \texttt{CSA} that encodes stops and their lines, and a \texttt{WM} that encodes journey codes. \marginpar{TODO: move compression discussions to the end of the section}
 
 \begin{table}
     \caption{Space requirements for the \texttt{CSA} (a) and the \texttt{WM} (b) from \ttctr}
@@ -659,11 +661,33 @@ Although the \texttt{CSA} is slightly smaller in \ctr, the compression ratios ar
 
 This difference is accentuated when we consider that we must add the space of \texttt{WML} to \ctr, even though we obtain much better compression than for \texttt{WMJ}. The compression observed with the uncompressed bitvector \texttt{RG32} is due to the optimization discussed in Section~\ref{sec:ctr}, where we keep a separate \texttt{WM} aligned to each stop from the \texttt{CSA}, resulting in much shorter \texttt{WM}s. The further compression achieved with the \texttt{RRR} bitvectors is possible because the stop entries in the \texttt{CSA} are sorted by either the final stop the user alights to or the next stop to board, making the aligned sequence of lines very predictable. Additionally, as our \texttt{CSA} maintains the order of trips from the original text in the $\$$ section, leading to the formation of clusters in the first \texttt{WML}.
 
+We also evaluate the compression of the overall \ttctr~and \ctr~representations with respect to a plain representation of the user trips that we use as input, which are the triplets $<s,l,j>$ seen in Section~\ref{sec:ttctr}, where the stop identifiers, line identifiers and journey codes had to be represented with 14, 11 and 14 bit integers, respectively. We only show the compression ratios for the four configurations that will be tested in the following Section~\ref{sec:time}, combining two $t_{\Psi}$ and two \texttt{WM} configurations\footnote{In case of \ctr, this refers to bitvectors from both \texttt{WML} and \texttt{WMJ}.}. A more realistic baseline would be a relational database representation, where additional fixed-width integers would be needed to maintain foreign key relations, thus requiring much more space than our chosen baseline.
+
+\begin{table}
+    \centering
+    \caption{Compression of \ttctr~and \ctr~when compared to a plain representation of the user trips with fixed-width integeres}
+    \label{tab:comp}
+    \begin{tabular}{|c|c|c|c|c|c|c|c|}
+    \cline{3-8}
+    \multicolumn{2}{c}{} & \multicolumn{2}{|c|}{plain} & \multicolumn{2}{|c|}{\ttctr} & \multicolumn{2}{|c|}{\ctr} \\
+    \hline
+    $t_{\Psi}$ & \texttt{WM} & Size & Comp. (\%) & Size & Comp. (\%) & Size & Comp. (\%) \\
+    \hline
+    32 & RG32 & \multirow{4}{*}{165.39} & \multirow{4}{*}{100} & 81.73 & 49.42 & 111.73 & 67.56 \\
+    32 & RRR128 & & & 75.66 & 45.75 & 91.70 & 55.44 \\
+    512 & RG32 & & & 75.25 & 45.50 & 105.21 & 63.61 \\
+    512 & RRR128 & & & 69.18 & 41.83 & 85.17 & 51.50 \\
+    \hline
+    \end{tabular}
+\end{table}
+
+It is clear to see that when compared to the same baseline, the compression ratios of \ctr~are inferior to the ones of \ttctr, for any configuration tested. This result is not surprising considering that \ctr~separates the line identifiers into a separate \texttt{WM}, that is proven less compressible than a \texttt{CSA} for repetitive sequences. In the next section we will demonstrate the advantages of this separation in query performance.
+
 \subsection{Query performance}
 \label{sec:time}
 Missing a comparison of \acumm~vs \ttctr!
 
-We have implemented the most adequate queries for \ttctr~and \ctr~from those described in Section~\ref{sec:rq}, and measured their average execution time from 100.000 randomly generated queries on [rellenar detalles de Compostela 2]. In this section we will only discuss four of the possible configurations tested for both \ttctr~and \ctr, with t$_{\Psi}$ values of 32 and 512 combining with WM using either uncompressed bitvectors (\texttt{RG32}) or the most compressed (\texttt{RRR128})\footnote{In case of \ctr, this refers to bitvectors from both \texttt{WML} and \texttt{WMJ}.}. These four configurations should be illustrative enough to provide an understanding of the space-time trade-offs of our approaches, although the execution times for all tested configurations can be found in the Appendix A.
+We have implemented the most adequate queries for \ttctr~and \ctr~from those described in Section~\ref{sec:rq}, and measured their average execution time from 100.000 randomly generated queries on [rellenar detalles de Compostela 2]. In this section we will only discuss four of the possible configurations tested for both \ttctr~and \ctr, with t$_{\Psi}$ values of 32 and 512 combining with \texttt{WM} using either uncompressed bitvectors (\texttt{RG32}) or the most compressed (\texttt{RRR128}). These four configurations should be illustrative enough to provide an understanding of the space-time trade-offs of our approaches, although the execution times for all tested configurations can be found in the Appendix A.
 
 We demonstrate the main advantage of \ctr~over the older \ttctr~ in the Figure~\ref{fig:start}b, where restricting a line or a time interval for an \texttt{end\_X} query is very expensive for \ttctr~ due to its separate vocabulary for final stops, requiring to query the \texttt{CSA} for every possible stop that could have been boarded before X to restrict a line. In the Figure~\ref{fig:start}a it is also possible to see how the performance of \ctr~degrades less with a highly compressed \texttt{CSA} for the query \texttt{start\_X$_T$}, where even queries over a compressed \texttt{WML} are faster than queries over the \texttt{CSA}.
 
