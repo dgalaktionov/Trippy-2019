@@ -14,7 +14,7 @@ set boxwidth 0.9
 set bmargin at screen 0.2
 set logscale y
 set grid ytics
-set ylabel 'Average time per query (μs)'
+set ylabel 'Average time per query (ns)'
 set title ARG1 font 'Helvetica Bold, 14'
 set key outside bottom center box horizontal Right autotitle columnheader height 1
 
