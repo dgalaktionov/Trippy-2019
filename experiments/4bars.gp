@@ -1,6 +1,6 @@
 #set size 1.25,1
 #set terminal postscript eps enhanced
-set terminal epscairo size 5,4 font 'Helvetica, 12'
+set terminal epscairo size 5,2.75 font 'Helvetica, 12'
 #set terminal x11
 #set output
 set encoding utf8
@@ -11,7 +11,7 @@ set style data histogram
 set style histogram cluster gap 1
 set style fill pattern border
 set boxwidth 0.9
-set bmargin at screen 0.125
+set bmargin at screen 0.2
 set logscale y
 set grid ytics
 set ylabel 'Average time per query (μs)'
