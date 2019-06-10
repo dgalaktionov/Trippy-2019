@@ -4,6 +4,7 @@ plot: 8bars.gp board start end xy
 
 board:
 	gnuplot -c 8bars.gp "board-X with line and time restrictions" board_old.csv board_new.csv 0 > board.eps
+	gnuplot -c 4bars.gp "board-X with T-Matrix variants" board_t.csv > board_t.eps
 
 start:
 	gnuplot -c 8bars.gp "start-X with line and time restrictions" start_old.csv start_new.csv 0 > start.eps
