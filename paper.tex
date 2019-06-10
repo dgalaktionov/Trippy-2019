@@ -746,8 +746,6 @@ It is clear to see that when compared to the same baseline, the compression rati
 
 \subsection{Query performance}
 \label{sec:time}
-Missing a comparison of \acumm~vs \ttctr!
-
 We have implemented the most adequate queries for \ttctr~and \ctr~from those described in Section~\ref{sec:rq}, and measured their average execution time from 100.000 randomly generated queries on a Intel Xeon E5-2620v4@2.1 GHz machine. In this section we will only discuss four of the possible configurations tested for both \ttctr~and \ctr, with t$_{\Psi}$ values of 32 and 512 combining with \texttt{WM} using either uncompressed bitvectors (\texttt{RG32}) or the most compressed (\texttt{RRR128}). These four configurations should be illustrative enough to provide an understanding of the space-time trade-offs of our approaches, although the execution times for all tested configurations can be found in the Appendix A.
 
 We demonstrate the main advantage of \ctr~over the older \ttctr~ in the Figure~\ref{fig:start}b, where restricting a line or a time interval for an \texttt{end\_X} query is very expensive for \ttctr~ due to its separate vocabulary for final stops, requiring to query the \texttt{CSA} for every possible stop that could have been boarded before X to restrict a line. In the Figure~\ref{fig:start}a it is also possible to see how the performance of \ctr~degrades less with a highly compressed \texttt{CSA} for the query \texttt{start\_X$_T$}, where even queries over a compressed \texttt{WML} are faster than queries over the \texttt{CSA}.
