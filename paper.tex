@@ -816,7 +816,18 @@ The high selectivity of time restrictions explain why \ttctr~appears to become m
 The only query for which \ttctr~is clearly preferred over \ctr~is \texttt{board\_X}, with any restriction, as can be seen in the Figure~\ref{fig:board}. Both for \texttt{board\_X} and \texttt{board\_X$_{L}$}, \ttctr~takes on average less than one microsecond per query, as the only operations needed are two constant time $select$ over the bitvector \texttt{D} from the \texttt{CSA}, while \ctr~needs to subtract the occurrences of $X\$$ (as those are alighting stops, not boarding), for which $\Psi$ must be accessed. This advantage is carried on the queries with time restrictions as well. \marginpar{\tiny Meter otra grafica aqui comparando tiempos de \ttctr~vs \acumm~para esta query}.
 
 \begin{figure}[hbt!]
-\includegraphics[width=0.5\textwidth]{experiments/board.eps}
+\begin{subfigure}{0.5\linewidth}
+\includegraphics[width=\linewidth]{experiments/board.eps}
+\vspace{-12pt}
+\caption{\footnotesize (a)}
+\vspace{-12pt}
+\end{subfigure}%
+\begin{subfigure}{0.5\linewidth}
+\includegraphics[width=\linewidth]{experiments/board_t.eps}
+\vspace{-12pt}
+\caption{\footnotesize (b)}
+\vspace{-12pt}
+\end{subfigure}
 \caption{Comparison of \texttt{board\_X$_{LT}$} queries, with all variants}
 \label{fig:board}
 \end{figure}
