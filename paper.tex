@@ -31,26 +31,34 @@
 
 \begin{document}
 %
-\title{Next Trippy Structures\thanks{Supported by organization x.}}
+\title{Next Trippy Structures\thanks{Funded in part by European Union`s Horizon 2020 research and innovation programme
+under the Marie Sklodowska-Curie grant agreement No 690941 (project
+BIRDS). The Spanish group is also partially funded by Xunta de Galicia/FEDERUE
+[CSI: ED431G/01; GRC: ED431C 2017/58; GEMA:IN852A
+2018/14 and Innovapeme: IN848D-2017-2350417]; by MINECO-AEI/FEDER-UE
+[Datos 4.0: TIN2016-78011-C4-1-R; and ETOMERDFD3:
+TIN2015-69951-R]; and by FPI Program [BES-C-2017-0085]. M. A. Rodr´ıguez is
+partially funded by Fondecyt-Conicyt grant number 1170497 and by the Millennium
+Institute for Foundational Research on Data. }}
 %
 %\titlerunning{Abbreviated paper title}
 % If the paper title is too long for the running head, you can set
 % an abbreviated paper title here
 %
-\author{First Author\inst{1}\orcidID{0000-1111-2222-3333} \and
-Second Author\inst{2,3}\orcidID{1111-2222-3333-4444} \and
-Third Author\inst{3}\orcidID{2222--3333-4444-5555}}
+\author{Nieves R. Brisaboa\inst{1} \and
+Antonio Fari\~na\inst{1}\and
+Daniil Galaktionov\inst{1,2} \and Tirso V. Rodeiro\inst{1} \and M. Andrea Rodr\'iguez\inst{3,4}}
 %
-\authorrunning{F. Author et al.}
+\authorrunning{N. Brisaboa et al.}
 % First names are abbreviated in the running head.
 % If there are more than two authors, 'et al.' is used.
 %
-\institute{Princeton University, Princeton NJ 08544, USA \and
-Springer Heidelberg, Tiergartenstr. 17, 69121 Heidelberg, Germany
-\email{lncs@springer.com}\\
-\url{http://www.springer.com/gp/computer-science/lncs} \and
-ABC Institute, Rupert-Karls-University Heidelberg, Heidelberg, Germany\\
-\email{\{abc,lncs\}@uni-heidelberg.de}}
+\institute{Universidade da Coru\~na, Laboratorio de Bases de Datos, A Coru\~na, Spain  \email{\{brisaboa, fari, d.galaktionov, tirso.varela.rodeiro\}@udc.es}  \and 
+Enxenio S.L., A Coru\~na, Spain
+\and
+Computer Science Department, Universidad de Concepci\'on, Concepci\'on, Chile \and Millennium Institute for Foundational Research on Data, Santiago, Chile
+\email{andrea@udec.cl }\\
+ }
 %
 \maketitle              % typeset the header of the contribution
 %
@@ -58,7 +66,7 @@ ABC Institute, Rupert-Karls-University Heidelberg, Heidelberg, Germany\\
 The abstract should briefly summarize the contents of the paper in
 15--250 words.
 
-\keywords{First keyword  \and Second keyword \and Another keyword.}
+\keywords{Compact structures  \and Compression \and Trajectories}
 \end{abstract}
 %
 %
@@ -113,7 +121,7 @@ This summarized review proves that, although we were not able to access real dat
 
 \subsection{Underlying structures and algorithms}
 \subsubsection{Summed Area Tables}
-The Summed Area Tables were first introduced in computer graphics \cite{crow1984summed} to speed up the mipmapping process.\marginpar{\tiny part of the explanation of \acumm~should go in here}
+The Summed Area Tables were first introduced in computer graphics \cite{crow1984summed} to speed up the mipmapping process. In this work we use this approach in order to manage aggregated data about user trajectories based on the idea that an amount of commuters share the same ride (with all its implications: times, trajectories...).
 
 \subsubsection{Bitvectors}
 \label{sec:bit}
@@ -258,32 +266,85 @@ An example of these structures interacting together can be found at the Algorith
 \label{sec:acumm}
 As it has been stated previously in this paper, nowadays it could be relatively simple to gather massive information about user trips in every public transport; however, it is not necessary to store individually each trip. If there are two (or more) commuters sharing the same bus (train/tram/etc), they are also sharing the route, the stops (the time of each stop) and even the network. Therefore, a structure storing the aggregated data of the user trips would be a handy solution to solve (at least) queries of type A presented in section 3.
 
-Thus, we propose the T-Matrix, an accumulated solution that involves two-dimensional matrices of integers enabling aggregated queries by row, column, or window/range. In the context of a public trasnportation network, it would by useful to solve flexible line-centered queries; that is, queries that support aggregation by any dimension. Therefore, it could be possible to aggregate either by time-interval (e.g. number of users got on at any stop of the line on 2019/01/02); by stop (e.g. number of commuters that got on a bus at stop S); or by stop and time-interval.
+\begin{figure}[h!]
+  \includegraphics[scale=0.65]{Tmatrices.png}
+  \caption{T-Matrices example}
+  \label{fig:tmatrix}
+\end{figure}
 
-In a naïve representation, it would only be necessary a two-dimensional matrix having stops as rows and journeys as columns, so each cell would have an integer representing the number of passengers that got on the vehicle at a specific stop in a particular time (journey). The main issue with this approach is that for each query it would be necessary to sum integer by integer each cell of the solution; hence, if we are trying to compute how many people got on a bus in several consecutive stops during a time interval (several consecutive journeys) it would be necessary to sum all the cells within the matrix that match these journeys and stops.
+Thus, we propose the T-Matrix, an accumulated solution that involves two-dimensional matrices of integers enabling aggregated queries by row, column, or window/range. In the context of a public transportation network, it would be useful to solve flexible line-centered queries; that is, queries that support aggregation by any dimension. Therefore, it could be possible to aggregate either by time-interval (e.g. number of users got on at any stop of the line on 2019/01/02); by stop (e.g. number of commuters that got on a bus at stop S); or by stop and time-interval.
 
-On the other hand, T-Matrix is based on this naive proposal but instead of storing each cell as a simple integer it assigns an accumulated value to each slot, being the top left cell the smaller number and the bottom right position the cumulative value resulting from adding all the previous cells. Despite having larger numbers in almost every slot of the matrix, this approach allows to apply the dynamic programing formula that follows:
+In a na\"{\i}ve representation, it would only be necessary a two-dimensional matrix having stops as rows and journeys as columns, so each cell would have an integer representing the number of passengers that got on the vehicle at a specific stop in a particular time (journey). The main issue with this approach is that for each query it would be necessary to sum integer by integer each cell of the solution; hence, if we are trying to compute how many people got on a bus in several consecutive stops during a time interval (several consecutive journeys) it would be necessary to sum all the cells within the submatrix that match these journeys and stops.
+
+On the other hand, T-Matrix is based on this na\"{\i}ve proposal but instead of storing each cell as a simple integer it assigns an accumulated value to each slot, being the top left cell the smaller number and the bottom right position the cumulative value resulting from adding all the previous cells. Despite having larger numbers in almost every slot of the matrix, this approach allows to apply the dynamic programming formula that follows:
 
 $\mathsf{countRange((x_1,y_1),(x_2,y_2))} \leftarrow {M(x_2,y_2)} - {M(x_2,y_1-1)} - {M(x_1-1,y_2)} + {M(x_1-1,y_1-1)}$.
 
-The combination of this operations with our proposed accumulative matrix enables to compute the same two-dimensional (or one-dimensional) queries in constant time O(1), as it is only neccesary to access and sum four cells in all the matrix.
+The combination of this operations with our proposed accumulative matrix enables to compute the same two-dimensional (or one-dimensional) queries in constant time O(1), as it is only necessary to access and sum four cells in all the matrix.
 
-EXAMPLE
-
-One simple way of dealing with the growth of numbers in our cumulative solution is just apply a kind of sampling with differences; in this way, a basic example could be keep the middle column m ← (n s + 1)/2 explicitly, and representing the values in the other columns m±k as the difference with respect to column m.
+There are many options for compressing this cumulative matrix in order to get smaller dimensions, in this work we considered two relatively simple options with competitive results. One simple way of dealing with the growth of numbers in our cumulative solution is just apply a kind of sampling with differences; in this way, a basic example could be keep the middle column (\textit{$\mathsf{middle $\leftarrow$  (  \mathopen|c\mathclose|   + 1)/2} $}) explicitly, and representing the values in the other columns \textit{m±k} as the difference with respect to column \textit{m} (Diff in figure \ref{fig:tmatrix}). Being the algorithm to revert this differences as the one shown in Algorithm  \ref{alg:undiff}.
 
 
 
-Taking this simple structure one step further we have built a cumulative matrix with several sampling columns, reducing significantly the size of the structure. Hence, this new cumulativematrix is divided in blocks having n-factor sampling columns, calculating n-factor as a percentage
-of the total number of columns. During the queries real numbers in the matrix are obtained by adding each cell plus the nearest sampling column on the left.
+\begin{algorithm}[hbt!]
+
+\SetKwData{value}{value}
+ \SetKwFunction{extract}{Undiff}
+ \SetKwProg{Fn}{Function}{\string:}{}
+ 
+ \Fn{\extract{x, y}}{
+ \KwData{coordinates x , y} 
+ \KwResult{Value in the original cumulative matrix}
+ \BlankLine
+ \value $\leftarrow$ 0\;
+ \BlankLine
+ 
+\eIf{$ y == middle $}
+            {$ \value = diffMatrix[x][y]$}
+            {\eIf{$ y < middle $}
+                {$ \value = diffMatrix[x][middle] - diffMatrix[x][y]$}
+                {$ \value = diffMatrix[x][y] - diffMatrix[x][middle]$}}
+ 
+
+ \BlankLine
+ \Return{\value}\;
+ }
+ 
+ \caption{Obtaining the real value of any coordinates in the original cumulative matrix through the difference matrix}
+ \label{alg:undiff}
+\end{algorithm}
 
 
-
-In order to reach a lighter solution we combined the two last compression techniques building a cumulative matrix sampled by columns which have a centered sampled column in turn. Thus, a value in a cell of the matrix would be obtained adding its value to the value of the nearest sampling column on the left which would be calculted by summing this sampled value to the center column.
-
+Taking this simple algorithm one step further we have built a cumulative matrix with several sampling rows, reducing significantly the size of the structure. Hence, this new differential matrix (Blocks in figure \ref{fig:tmatrix}) is divided in square blocks where the first line in each block remains the same as in the cumulative matrix while the rest of the rows in the block are calculated from it. A more technical description would be as follows in the simplified algorithm \ref{alg:unblock}.
 
 
-Due to comparison reasons it has been also built these sampled structures using sampling rows instead of sampling columns as it was explained, leading this to the the seven structures that have been used in the experiments of this work: the basic matrix (BASIC), the cumulative matrix (SUM), the cumulative matrix with a central sampling column as reference (DIFF), the cumulative matrix with several sampling columns that divide it in blocks (COL-BLOCK), the COL-BLOCK matrix with a second central sampling (COL-BLOCK-DIFF) and the row version of the last two, ROW-BLOCK AND ROW-BLOCK-DIFF respectively.
+\begin{algorithm}[hbt!]
+
+\SetKwData{value}{value}
+ \SetKwFunction{extract}{Unblock}
+ \SetKwProg{Fn}{Function}{\string:}{}
+ 
+ \Fn{\extract{x, y, block\_size}}{
+ \KwData{coordinates x , y; 
+         block_size: dimension of the each block} 
+ \KwResult{Value in the original cumulative matrix}
+ \BlankLine
+ \value $\leftarrow$ 0\;
+ \BlankLine
+ 
+\eIf{$ x  \mod  block\_size $}
+            {$ \value = blockMatrix[x][y]$}
+            {$ \value = blockMatrix[x][y] + blockMatrix[x - (x  \mod  block\_size)][y]$}
+ 
+
+ \BlankLine
+ \Return{\value}\;
+ }
+ 
+ \caption{Obtaining the real value of any coordinates in the original cumulative matrix throught the difference matrix}
+ \label{alg:unblock}
+\end{algorithm}
+
 
 
 \subsection{\ttctr}
@@ -508,7 +569,7 @@ However, when only the time is restricted, every line that the queried stop belo
     \item \texttt{board\_L$_T$} Straightforward in \acumm, as it only needs to access one matrix. For \ttctr~we must filter through the \texttt{WM} for every stop from L. While in \ctr~the total number of occurrences of line L can be calculated in one $O(\log|L|)$ operation (with additional filtering through \FuncSty{WMJ} if needed), we need to subtract the occurrences of start\_L$_T$ and end\_L$_T$, the later having a greater complexity of $O(|S| \times \ctrq)$.
     \item \texttt{alight\_L$_T$} Can be approximated both in \ttctr~and \ctr~with board\_L$_T$, given that every user that boards on a line is expected to alight from it within a reasonable time.
     \item \texttt{board\_T} and \texttt{alight\_T} Although \acumm, \ttctr~and \ctr~could solve it by applying board\_L$_T$ $|L|$ times, this would imply a prohibitive cost for both \ttctr~and \ctr, where extracting all the trips would be preferred in practice.
-    \item \texttt{load\_X$_{LT}$} This can be easily calculated in \acumm~as detailed in Section~\ref{sec:acumm}. \marginpar{Tirso please explain how!}
+    \item \texttt{load\_X$_{LT}$} It is possible to solve this kind of query using both, alighting and boarding matrices. Knowing how many commuters got on and off the vehicle previously to one particular point makes trivial to determine how many of them are in the vehicle at each tract. This method is easily adapted to measure the average number through an interval of time.
     \item \texttt{start\_X$_{LT}$} Cannot be solved in \acumm. In the two other representations, we need to the range for the pattern $\$X$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed.
     \item \texttt{end\_X$_{LT}$} In \ctr~it is solved similarly to \texttt{start\_X$_{LT}$}, by delimiting the range for the pattern $X\$$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed. It can be much more complex for \ttctr, where the only way to restrict a line is to make a new query for every stop that could have been boarded before X in that line, which is a problem detailed at the start of Section~\ref{sec:ctr}.
     \item \texttt{switch\_X$_{LT}$} Calculated as board\_X$_{LT}$ - start\_X$_{LT}$.
@@ -687,7 +748,7 @@ It is clear to see that when compared to the same baseline, the compression rati
 \label{sec:time}
 Missing a comparison of \acumm~vs \ttctr!
 
-We have implemented the most adequate queries for \ttctr~and \ctr~from those described in Section~\ref{sec:rq}, and measured their average execution time from 100.000 randomly generated queries on [rellenar detalles de Compostela 2]. In this section we will only discuss four of the possible configurations tested for both \ttctr~and \ctr, with t$_{\Psi}$ values of 32 and 512 combining with \texttt{WM} using either uncompressed bitvectors (\texttt{RG32}) or the most compressed (\texttt{RRR128}). These four configurations should be illustrative enough to provide an understanding of the space-time trade-offs of our approaches, although the execution times for all tested configurations can be found in the Appendix A.
+We have implemented the most adequate queries for \ttctr~and \ctr~from those described in Section~\ref{sec:rq}, and measured their average execution time from 100.000 randomly generated queries on a Intel Xeon E5-2620v4@2.1 GHz machine. In this section we will only discuss four of the possible configurations tested for both \ttctr~and \ctr, with t$_{\Psi}$ values of 32 and 512 combining with \texttt{WM} using either uncompressed bitvectors (\texttt{RG32}) or the most compressed (\texttt{RRR128}). These four configurations should be illustrative enough to provide an understanding of the space-time trade-offs of our approaches, although the execution times for all tested configurations can be found in the Appendix A.
 
 We demonstrate the main advantage of \ctr~over the older \ttctr~ in the Figure~\ref{fig:start}b, where restricting a line or a time interval for an \texttt{end\_X} query is very expensive for \ttctr~ due to its separate vocabulary for final stops, requiring to query the \texttt{CSA} for every possible stop that could have been boarded before X to restrict a line. In the Figure~\ref{fig:start}a it is also possible to see how the performance of \ctr~degrades less with a highly compressed \texttt{CSA} for the query \texttt{start\_X$_T$}, where even queries over a compressed \texttt{WML} are faster than queries over the \texttt{CSA}.
 
