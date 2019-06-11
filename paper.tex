@@ -601,7 +601,7 @@ With this approach we have generated a dataset of ten million trips, over a real
 
 \subsection{Space requirements}
 \label{sec:space}
-We have measured the sizes of all the individual components of our representation in memory when built over the experimental dataset. We present the sizes of our common structures, followed by the \acumm\marginpar{Missing \acumm~sizes!}. After that, we compare the compression achieved with \ttctr~and \ctr.
+We have measured the sizes of all the individual components of our representation in memory when built over the experimental dataset. We present the sizes of our common structures, followed by the \acumm. After that, we compare the compression achieved with \ttctr~and \ctr.
 
 For the \texttt{CSA} structures from \ttctr~and \ctr, we experiment with the $t_\Psi$ (sampling interval) factors of 32, 128 and 512. For the \texttt{WM} present in \ttctr, as well as in the two \texttt{WM} from \ctr, we analyze the space required by the \texttt{RRR} bitvector described in \cite{Raman:2002:SID:545381.545411}, using block sizes of 32, 64 and 128, and compare it against a plain bitvector with a rank structure, which we call \texttt{RG32}.
 
@@ -616,6 +616,21 @@ The space occupied by the common structures is reflected in Table~\ref{tab:commo
         Structure & $lineStop$ & $stopLine$ & $avgTime$ & $initialTime$ & Total \\
         \hline
         Size (KiB) & 119 & 141 & 64 & 440 & 764 \\
+    \hline
+    \end{tabular}
+\end{table}
+
+To measure the sizes occupied by the different variants of \acumm~that were presented in Section~\ref{sec:acumm}, we have summed the total space required by each line matrix. These results, which can be found in Table~\ref{tab:acuum}, helped us prove that \texttt{Blocks} is an effective strategy to reduce the size of the accumulated values. While \texttt{Diff} is also able to reduce the total space, it's fundamentally constrained by the shape of our matrices, making it less desirable in this context.
+
+\begin{table}
+    \centering
+    \caption{Sizes of the different variants from \acumm}
+    \label{tab:acuum}
+    \begin{tabular}{|c|c|c|c|}
+    \hline
+        Variant & \texttt{Sum} & \texttt{Diff} & \texttt{Blocks} \\
+        \hline
+        Size (MiB) & 55.49 & 43.81 & 28.68 \\
     \hline
     \end{tabular}
 \end{table}
