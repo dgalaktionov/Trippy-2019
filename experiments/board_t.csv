@@ -1,5 +1,5 @@
 config	board-X	board-X_{L}	board-X_{T}	board-X_{LT}	space
-T-Matrix-Sum	163.09	417.51	164.52	418.11	55.49
-T-Matrix-Diff	344.23	881.23	345.68	881.92	43.81
-T-Matrix-Blocks	362.74	928.62	362.48	928.10	28.68
+T-Matrix-Sum	417.51	163.09	418.11	164.52	55.49
+T-Matrix-Diff	881.23	344.23	881.92	345.68	43.81
+T-Matrix-Blocks	928.62	362.74	928.10	362.48	28.68
 TTCTR-t_Ψ32+RG32	166.89	124.94	8212.75	3865.57	23.07
