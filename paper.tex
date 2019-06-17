@@ -847,13 +847,13 @@ Obviously, \acumm~may be used to solve a grater number of queries in much faster
 
 \section{Conclusions}
 \label{sec:conc}
-Speak about how cool would it be to have a single structure that could to it all. Pitch for our next paper with Gonzalo!
+In this work we have presented in detail our two compact representations for public transportation user trajectories: \ttctr~and \ctr, that follow a conceptual model that aims to eliminate redundancy while being adaptable to most transportation network schemes around the world. We have also determined there is a need for a third representation that we call \acumm, to accelerate some types of queries that would be otherwise impractical for the former representations, due to their time complexity.
 
-%
-% ---- Bibliography ----
-%
-% BibTeX users should specify bibliography style 'splncs04'.
-% References will then be sorted and formatted in the correct style.
+In the future, we aim to find a single representation that is powerful enough to support all our proposed kinds of queries. Finding such a representation is a considerable challenge as many of the known aggregation techniques make it impossible to maintain an elegant relation to the original representation. In our case, means that we would not be able to find and reconstruct the original trajectories of the users without additional heavy structures, that would negate the usefulness of a compact representation.
+
+In order to allow an end user to put in practice the concepts that were developed here, it is also necessary to extend this work to build a usable GIS interface. The high spatial and temporal efficiency of our representations would make it possible to maintain all our indexed dataset in memory and perform bulk operations (such as calculating the number of trips originated at one of the stops from a region) responsively.
+
+Finally, I can't think of anything pretty to wrap this up. I'm tired of this article.
 
 \bibliographystyle{splncs04}
 \bibliography{refs}
