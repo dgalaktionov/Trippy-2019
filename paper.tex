@@ -19,19 +19,25 @@
 \usepackage{threeparttable}
 \usepackage{multirow}
 \usepackage[margin=0pt,skip=1pt]{subcaption}
+\usepackage{xcolor}
+\usepackage{fixltx2e}
 
 \newcommand{\acumm}{T-Matrices} % T is for Total!
 \newcommand{\acummname}{\mathsf{Trip-Matrices}}
 \newcommand{\ctr}{XCTR}
 \newcommand{\ctrname}{\mathsf{eXtended~Compact~Trip~Representation}}
 \newcommand{\ttctr}{TTCTR}
-\newcommand{\ctrq}{XCTRc}
-\newcommand{\ttctrq}{TTCTRc}
+\newcommand{\ctrq}{$\alpha$}
+\newcommand{\ttctrq}{$\beta$}
 \newcommand{\ttctrname}{\mathsf{Topology\&Trip-aware~Compact~Trip~Representation}}
+
+\definecolor{red}{rgb}{1.0, 0.0, 0.0}
+
+\newcommand{\ojo}[1]{{\color{red} OJO: \tiny #1}}
 
 \begin{document}
 %
-\title{Next Trippy Structures\thanks{Funded in part by European Union`s Horizon 2020 research and innovation programme
+\title{New Trippy Structure \thanks{Funded in part by European Union`s Horizon 2020 research and innovation programme
 under the Marie Sklodowska-Curie grant agreement No 690941 (project
 BIRDS). The Spanish group is also partially funded by Xunta de Galicia/FEDERUE
 [CSI: ED431G/01; GRC: ED431C 2017/58; GEMA:IN852A
@@ -74,61 +80,61 @@ The abstract should briefly summarize the contents of the paper in
 \section{Introduction}
 With the increasing use of passenger tracking technology on public transportation networks, it is becoming necessary to store a constantly growing amount of information regarding the usage (demand) of the networks, which is different from the well-known information of stops and timetables (offer). To enable analysis over these large collections of data, a compact yet indexed representation is needed that, unlike the works that focus on indexing moving objects, allows for representation and querying of relevant network elements related to passenger trips.
 
-A practical representation for this information that supports efficient indexing would have numerous possible applications, such as transportation companies interested in studying the ridership \cite{tu2018spatial} or improve the efficiency of the network, such as in \cite{weng2018mining}. Another application that is enabled by such analysis is the targeted advertising \cite{zhang2017targeted}, as being able to predict travel patterns is extremely useful for an advertiser.
+A practical representation for this information in a data structure that supports efficient indexed search would have numerous possible applications, specially for transportation companies interested in studying the ridership \cite{tu2018spatial} and, therefore, improve the efficiency of the network, such as in \cite{weng2018mining}. Another application that is enabled by such analysis is the targeted advertising \cite{zhang2017targeted}, as being able to predict travel patterns for different user profiles could be extremely useful for an advertiser.
 
 %These guys \cite{wang2014aggregated} made it so boring that they are probably not worth citing, but I'm keeping them here for now because they separate fridays and types of days, even though we don't care much about that anymore. OR DO WE?
 
 In this work we introduce our approach on a flexible and efficient representation for analyzing the demand of real transportation networks using compact data structures. We have observed that there are two different kinds of queries that can be considered as useful to study the movement patterns of public transport users, for which we developed two complementary representations: \acumm~and \ttctr, with a second version for the later called \ctr, that addresses some of the limitations of \ttctr~to efficiently support more types of queries.
 
 \subsubsection{Outline}
-This work is structured as follows. We start with a detailed review of related works in Section~\ref{sec:rw}, where we discuss the state of the art for trajectory indexing, mining and the underlying structures that our representations depend on. It is followed by Section~\ref{sec:model}, where we explain our design for a data model that can support relevant queries over transportation networks. In Section~\ref{sec:ps} we detail the composition of our representations and analyze their time efficiency for the targeted queries, followed by a practical analysis in Section~\ref{sec:exp}, where we evaluate the performance on a real transportation network. Finally, the conclusions can be found in Section~\ref{sec:conc}.
+This work is structured as follows. We start with a detailed review of related works in Section~\ref{sec:rw}, where we discuss the state of the art for trajectory indexing, mining and then we present the underlying structures that our representation is based on. It is followed by Section~\ref{sec:model}, where we explain our design for a data model that can support relevant queries over transportation networks. In Section~\ref{sec:ps} we detail the composition of our representations and analyze their time efficiency for the targeted queries, followed by a practical analysis in Section~\ref{sec:exp}, where we evaluate the performance on a real transportation network. Finally, the conclusions can be found in Section~\ref{sec:conc}.
 
 
 \section{Related works}
 \label{sec:rw}
 \subsection{Trajectory indexing}
-Literature on spatial trajectory indexing can be categorized by the nature of the trajectories: they can be either constrained to a network or in free space (often called moving objects). While there are well-known queries for indexes that work on moving objects in free space \cite{DBLP:conf/vldb/PfoserJT00}, the network constrained trajectory indexes cover more diverse querying needs, as different networks involve different kinds of challenges (as in vehicular road network vs public transportation network), and also because the intended application may vary (analyzing trip-chaining patterns vs number of passengers within a time window). A comprehensive review on indexing methods can be found in \cite[Chapter 4]{DBLP:books/sp/PelekisT14}, to which we shall expand in the rest of this section to mention the most notable indexes and some new developments.
+Literature on spatial trajectory indexing can be categorized by the nature of the trajectories: they can be either constrained to a network or in free space. While there are well-known queries for indexes that work on moving objects in free space \cite{DBLP:conf/vldb/PfoserJT00}, the network constrained trajectory indexes cover more diverse querying needs, as different networks involve different kinds of challenges (as in vehicular road network vs public transportation network), and also because the intended application may vary (analyzing trip-chaining patterns vs number of passengers within a time window). A comprehensive review on indexing methods can be found in \cite[Chapter 4]{DBLP:books/sp/PelekisT14}, to which we shall expand in the rest of this section to mention the most notable indexes and some new developments \ojo{Desde la referencia NO}.
 
 \subsubsection{Free trajectory indexing}
 Several adaptations of the {\em R-Tree} \cite{DBLP:conf/sigmod/Guttman84} are widely used for the indexing of moving objects. The most common approach is to integrate the temporal dimension in the R-Tree itself, as found in the {\em STR-Tree} and the {\em TB-Tree} from \cite{DBLP:conf/vldb/PfoserJT00}.
-Another common approach is to compliment the R-Tree with another similar structure, as has been done for the {\em MV3R-tree}~\cite{DBLP:conf/vldb/PapadiasT01},
+Another common approach is to complement the R-Tree with another similar structure for time representation, as has been done for the {\em MV3R-tree}~\cite{DBLP:conf/vldb/PapadiasT01},
 where an Historical {\em R-Tree}~\cite{nascimento1998towards} to partition on the temporal dimension.
 
 The observation that, even for free trajectories, temporal dimension is generally more selective than spatial dimensions was heavily exploited in the subsequent works, such as {\em SETI} from \cite{chakka2003indexing}, where the space is partitioned statically and the time is indexed with a one dimensional R-Tree.
 
-Recently a framework based on Apache Spark was developed called {\em UlTraMan}~ \cite{ding2018ultraman}, that supports different kinds of partitioning schemes for large collections of trajectories to answer range, kNN or aggregation queries, allowing to repartition the dataset to maximize the query time efficiency for a given query type. Although UlTraMan has been tested over network constrained trajectories, it does not appear to be exploiting network information in any way, hence its inclusion in this category.
+Recently a framework based on Apache Spark called {\em UlTraMan}~ \cite{ding2018ultraman} was developed. It supports different kinds of partitioning schemes for large collections of trajectories to answer range, kNN or aggregation queries \ojo{Queries NO definidas aun}, allowing to divide the dataset to maximize the query time efficiency for a given query type. \ojo{Nieves: No claro} Although UlTraMan has been tested over network constrained trajectories, it does not appear to be exploiting network information in any way, hence its inclusion in this category.
 
-In the field of compact data structures, an index called {\em GraCT}~\cite{brisaboa2019gract} has been developed, based snapshots at regular time intervals using {\em k$^2$-Trees}~\cite{brisaboa2009k} and movement logs for individual trajectories to which grammar compression is applied with {\em RePair}~\cite{larsson2000off}. Because of this, GraCT is a self-indexed compact representation that supports spatio-temporal range and nearest-neighbor queries, as well as allowing for direct access to the trajectory information.
+In the field of compact data structures, an index called {\em GraCT}~\cite{brisaboa2019gract} has been developed, based on snapshots at regular time intervals representing the real position of the object at that time using {\em k$^2$-Trees}~\cite{brisaboa2009k} and movement logs for individual trajectories to which grammar compression (using {\em RePair}~\cite{larsson2000off}) is applied. Because of this, GraCT is a self-indexed compact representation that supports spatio-temporal range and nearest-neighbor queries, as well as allowing for direct access to the trajectory information of objects moving in open space (planes, ships\dots).
 
 \subsubsection{Network constrained trajectory indexing}
-There are also numerous approaches that use R-Tree based indexes for trajectories that are constrained to an underlying network, aiming to decrease the redundancy in the representation by separating the representation into levels. Examples of such indexes include the {\em FNR-Tree}~\cite{DBLP:conf/ssd/Frentzos03}, where the network elements are indexed with a 2D R-Tree and 1D R-Trees to index time intervals of moving objects along the edges of the network. Some of the limitations of the FNR-Tree are addressed in \cite{DBLP:journals/geoinformatica/AlmeidaG05}, where the authors propose the {\em MON-Tree}, where the moving objects are indexes in two dimensional R-Trees (the dimensions being edge position vs time). More recent alternatives, such as the {\em TMN-Tree}~\cite{chang2010tmn}, integrate {\em B$^+$-Trees}, which have proven to be more space and time efficient for indexing the temporal dimension. Alternatively, in \cite{rivera2018faster} a compact representation of time intervals is proposed using two bitvectors, that can be combined with these R-Tree based indexes to increase the efficiency for temporal filtering. Refer to \cite{john2017performance} for a quick comparison of these R-Tree based indexes.
+There are also numerous approaches that use R-Tree based indexes for trajectories that are constrained to an underlying network, aiming to decrease the redundancy in the representation by separating the representation into levels. \ojo{Nieves: no claro} Examples of such indexes include the {\em FNR-Tree}~\cite{DBLP:conf/ssd/Frentzos03}, where the network elements are indexed with a 2D R-Tree and 1D R-Trees to index time intervals of moving objects \ojo{NO} along the edges of the network. Some of the limitations of the FNR-Tree are addressed in \cite{DBLP:journals/geoinformatica/AlmeidaG05}, where the authors propose the {\em MON-Tree}, where the moving objects are indexes in two dimensional R-Trees (the dimensions being edge position vs time). More recent alternatives, such as the {\em TMN-Tree}~\cite{chang2010tmn}, integrate {\em B$^+$-Trees}, which have proven to be more space and time efficient for indexing the temporal dimension. Alternatively, in \cite{rivera2018faster} a compact representation of time intervals is proposed using two bitvectors, that can be combined with these R-Tree based indexes to increase the efficiency for temporal filtering. Refer to \cite{john2017performance} for a quick comparison of these R-Tree based indexes.
 
 As a competitive alternative to these R-Tree based indexes, {\em PARINET}~\cite{DBLP:journals/vldb/PopaZOBV11}, builds spatial partitions from the trajectories based on their distribution and network topology, and uses a B$^+$-Tree to index the trajectories in each partition by time intervals. Although candidate trajectories must be filtered in memory during queries, PARINET is highly efficient in practice as its partitioning strategy minimizes the number of disk accesses needed.
 %The same ideas were used in {\em TRIFL}~\cite{that2015trifl}, where the cost model is adapted for flash storage.
 
-Another relevant representation is described in \cite{DBLP:conf/gis/KroghPTT14}. Their proposed index, {\em NETTRA}, was designed to efficiently solve a specific kind of query called {\em Strict Path Queries (SPQ)}, built on a traditional RDBMS with $B^+$-Tree indexes. Another distinctive feature of NETTRA is its treatment of network constrained trajectories as textual information, which allows to apply string matching techniques such as fingerprinting functions to determine what trajectories have similar paths on their traversed edges. This close equivalence between trajectories and strings has been further exploited by Geodabs~\cite{chapuis2018geodabs}, where both the spatial distribution and sequence information are taken into account for finding trajectories by similarity with fingerprinting. These text-based approaches are sometimes tangled with works on the topic of semantic trajectories such as \cite{al2017semantictraj}.
+Another relevant representation is described in \cite{DBLP:conf/gis/KroghPTT14}. Their proposed index, {\em NETTRA}, was designed to efficiently solve a specific kind of query called {\em Strict Path Queries (SPQ)} that ensure that selected trajectories not only touch with the searched path but also follow it from its beginning to its end. Built on a traditional RDBMS with $B^+$-Tree indexes. Another distinctive feature of NETTRA is its treatment of network constrained trajectories as textual information, which allows to apply string matching techniques such as fingerprinting functions to determine what trajectories have similar paths on their traversed edges. This close equivalence between trajectories and strings has been further exploited by Geodabs~\cite{chapuis2018geodabs}, where both the spatial distribution and sequence information are taken into account for finding trajectories by similarity with fingerprinting. These text-based approaches are sometimes tangled with works on the topic of semantic trajectories such as \cite{al2017semantictraj}.
 
 %For vehicles we also have this \cite{cai2018vector} and \cite{lovell2018lossless}.
 
-A recent compact data structure named {\em CiNCT} has been proposed in \cite{koide2018cinct}, where trajectories are encoded into a string, that is used to build an FM-index \cite{DBLP:conf/focs/FerraginaM00} with a Huffman-shaped Wavelet Tree \cite{ferragina2009compressed}. To further save space, the string is constructed with relative movement labels instead of absolute edges, with an auxiliary structure that represents a network graph built from the input trajectories themselves. While this structure excels at pattern-matching and path extraction in vehicular networks (such as the streets of a city), it cannot be applied to our problems in public transportation networks.
+A recent compact data structure named {\em CiNCT} has been proposed in \cite{koide2018cinct}, where trajectories are encoded into a string, that is used to build an FM-index \cite{DBLP:conf/focs/FerraginaM00} with a Huffman-shaped Wavelet Tree \cite{ferragina2009compressed}. Due to space optimization, the string is constructed with relative movement labels instead of absolute edges, with an auxiliary structure that represents a network graph built from the input trajectories themselves. While this structure excels at pattern-matching and path extraction in street networks, it cannot be applied to our problems in public transportation networks. \ojo{¿Por que?}
 
-\subsection{Trajectory data mining}
+\subsection{Trajectories retrieval}
 Currently there are several known techniques that would allow to collect data regarding users' trips over a public transportation network. Numerous works exist where those trajectories are mined from the transactions of smart cards \cite{bhaskar2015passenger,wang2014aggregated}. This can be complemented with information derived from GPS devices, as shown in \cite{ma2014development}. Alternatively, reliable trajectories may be extracted relying on positioning obtained from cellular networks, as proven by \cite{liu2017exploring}.
 
 Because smart card methods usually provide only information about boarding stops, there are works that study the challenge of inferring alighting stops from passengers \cite{wang2011review}. In addition, the authors of \cite{tao2014exploring} have specifically tackled the challenge of reconstructing full trajectories, accounting for trip-chaining, by using data obtained from smart cards. Furthermore, in \cite{alsger2016validating} it is also proven that not only the alighting stops, but also the (last) destination stop of a trip can be estimated from boarding data gathered by a smart card, within a reasonable accuracy.
 
-This summarized review proves that, although we were not able to access real data from a public transportation company for this work, such curated information about users' trips can indeed be obtained and used for our proposed representations.
+This summarized review proves that \ojo{¿La nuestra?}, although we were not able to access real data from a public transportation company for this work, such curated information about users' trips can indeed be obtained and used for our proposed representations.
 
 \subsection{Underlying structures and algorithms}
 \subsubsection{Summed Area Tables}
-The Summed Area Tables were first introduced in computer graphics \cite{crow1984summed} to speed up the mipmapping process. In this work we use this approach in order to manage aggregated data about user trajectories based on the idea that an amount of commuters share the same ride (with all its implications: times, trajectories...).
+The Summed Area Tables were first introduced in computer graphics \cite{crow1984summed} to speed up the mipmapping process. In this work we use this approach in order to manage aggregated data about user trajectories based on the idea that an amount of passengers share the same ride (with all its implications: times, trajectories...).
 
 \subsubsection{Bitvectors}
 \label{sec:bit}
-A great amount of works in Compressed Data Structures revolve around bitvectors, both compressed and uncompressed. For a bitvector $B[1,n]$ the following operations are expected to be supported:
+A great amount of works in Compressed Data Structures have proposed solutions based on bitvectors, both compressed and uncompressed. For a bitvector $B[1,n]$ the following operations are expected to be supported:
 
 \begin{itemize}
-    \item $rank_1(B,i)$ returns the number of set bits in $B[1..i]$. Alternatively, $rank_0(B,i) = i - rank_1(B,i)$ and also $B[i] = rank_1(B,i-1) - rank_1(B,i)$.
+    \item $rank_1(B,i)$ returns the number of set bits in $B[1..i]$. Alternatively, $rank_0(B,i) = i - rank_1(B,i)$ and also $B[i] = rank_1(B,i-1) - rank_1(B,i)$. \ojo{¿Que aporta?}
     \item $select_1(B,i)$ returns the position in $1..n$ where the $i$th 1 occurs. Therefore, $rank_1(B,select_1(B,i)) = i$.
 \end{itemize}
 
@@ -136,9 +142,9 @@ These operations can be supported in constant time with $o(n)$ extra bits \cite{
 
 \subsubsection{Compressed Suffix Array (CSA)}
 \label{sec:csa}
-One common structure to count or locate all the occurrences of a pattern $P[1,m]$ in a string $S[1,n]$ of symbols from an alphabet $\Sigma$ is the Suffix Array (SA) \cite{MM93}. The SA lexicographically sorts all the suffixes $\{S[i..n] : 1 \leq i \leq n\}$ and builds an array $A[1,n]$ with their indices, holding that $S[A[i]..n] \prec S[A[i+1]..n]$. This allows to find out all the occurrences of a substring $P[1,m]$ in $O(m \log n)$ time with binary searches.
+One common structure to count or locate all the occurrences of a pattern $P[1,m]$ in a string $S[1,n]$ of symbols from an alphabet $\Sigma$ is the Suffix Array (SA) \cite{MM93}. The SA lexicographically sorts all the suffixes $\{S[i..n] : 1 \leq i \leq n\}$ and builds an array $A[1,n]$ with their positions in the \ojo{???}, holding that $S[A[i]..n] \prec S[A[i+1]..n]$. This allows to find out all the occurrences of a substring $P[1,m]$ in $O(m \log n)$ time with binary searches.
 
-A simple enhancement to avoid storing the original string $S$ is to align $A$ with a bitvector $D[1,n]$ where $D[i]=1~\Leftrightarrow~S[A[i-1]] \prec S[A[i]]$. That is, $D$ marks with a 1 all the indexes $i$ of $A$ where the starting symbol of that suffix $S[A[i]]$ has a larger lexicographical value than the one from the previous suffix $S[A[i-1]]$. With $D$, keeping $S$ is not longer needed as $S[A[i]] = rank_1(D,i)$.
+A simple enhancement to avoid storing the original string $S$ is to align $A$ with a bitvector $D[1,n]$ where $D[i]=1~\Leftrightarrow~S[A[i-1]] \prec S[A[i]]$. That is, $D$ marks with a 1 all the positions in $A$ where the starting symbol of that suffix $S[A[i]]$ has a larger lexicographical value than the one from the previous positions $S[A[i-1]]$. With $D$, keeping $S$ is not longer needed as $S[A[i]] = rank_1(D,i)$. \ojo{Nieves no entiende}
 %, where $rank_1(D,i)$ returns the number of set bits in $D[1..i]$.
 
 Sadakane's CSA \cite{Sad03} further reduces the space by replacing $A$ with a permutation $\Psi[1,n]$ \cite{GV00}, where given $A[i]=k$ and $A[j]=k+1$, $\Psi[i]=j$, while keeping the capability to count the occurrences of $P[1,m]$ in $O(m \log n)$ as the bitvector $D$ is still valid for the entries of $\Psi$. Although an uncompressed $\Psi$ would have the same space requirement as $A$, it is much more compressible as it is formed by $\sigma$ strictly increasing subsequences, being $\sigma$ the size of the alphabet $\Sigma$. Furthermore, it has been proved in \cite{NM07} that $\Psi$ can be split in $nH_k+\sigma^k$ (for any $k$) runs of consecutive values. It is therefore possible to compress $\Psi$ using $\delta$-encoding and run-length for the (frequent) runs of consecutive values. This property has allowed \cite{FBNCPR12}, among others, to achieve compression rates comparable to gzip for English text, while maintaining relatively fast random access by storing samples at regular intervals.
@@ -170,7 +176,7 @@ While a compression method is proposed in \cite{CNO15} by using canonical Huffma
 
 \section{Our model for compact trip representation}
 \label{sec:model}
-In our previous structures introduced in \cite{brisaboa2018new}, we propose a work-in-progress model to represent the demand information for a public transportation network, as seen in the Figure~\ref{fig:er}.
+In our previous structures introduced in \cite{brisaboa2018new}, we propose a model to represent the demand information for a public transportation network, as seen in the Figure~\ref{fig:er}. \ojo{Este parrafo regu}
 
 \begin{figure}
 %\centering
@@ -194,33 +200,33 @@ These are the main elements from our model:
 \label{fig:example_network}
 \end{figure}
 
-This approach allows us to treat the information in a layered fashion: the bottom layer is a static network representation, formed by the line and stop\_place entities, the middle layer are the journeys made by vehicles that make stops at specific times, while the top layer are the trips made by the users over these vehicle journeys. In the Figure~\ref{fig:example_network} we show an example for the two bottom layers, where Line 1R is the reversed of Line 1. Our proposed implementation can be found in Section~\ref{sec:ps}.
+This approach allows us to treat the information in a layered fashion: the bottom layer is a static network representation, formed by the line and stop\_place types, the middle layer represents the journeys made by vehicles that make stops at specific times, while the top layer are the trips made by the users over these vehicle journeys. In the Figure~\ref{fig:example_network} we show an example for the two bottom layers, where Line 1R is the reversed of Line 1. Our proposed implementation can be found in Section~\ref{sec:ps}.
 
-Finally, it is possible to introduce a \textbf{user} identity, with an anonymized identifier to segregate trips by users. However, we do not consider such information useful for the kind of analysis that this work focuses on. If needed in the future, this additional entity could be trivially integrated in our representation.
+Finally, it is possible to introduce a \textbf{user} identity, with an anonymized identifier to split trips by users. However, we do not consider such information useful for the kind of analysis that this work focuses on. If needed in the future, this additional entity could be trivially integrated in our representation.
 
 \subsection{Relevant queries}
 \label{sec:rq}
 In the context of public transportation networks, we are interested in solving two kinds of queries, which we will present with a non-comprehensive list of examples that can be solved with the structures proposed in this work:
 
 \begin{enumerate}[A)]
-    \item Aggregation of passengers, asking for the gross number of users that boarded or alighted within an area and a time window. Furthermore, it can be also interesting to obtain the average load of a bus or a train between any two stops from its line. Some of those queries are:
+    \item Queries about the network load, asking for the gross number of users that boarded or alighted within a stop and a time/journey. Furthermore, it can be also interesting to obtain the average load of a bus or a train between any two stops from its line. Some of those queries are:
     \begin{itemize}
-        \item \texttt{board\_X$_{LT}$} Number of times that stop X is boarded, optionally restricting to a line L and a time range T.
-        \item \texttt{alight\_X$_{LT}$} Number of times that stop X is alighted, optionally restricting to a line L and a time range T.
-        \item \texttt{board\_L$_T$}  Number of times that line L is boarded, optionally restricting to a time range T.
-        \item \texttt{alight\_L$_T$} Number of times that line L is alighted, optionally restricting to a time range T.
-        \item \texttt{board\_T} Number of times a user boards within a time range T.
-        \item \texttt{alight\_T} Number of times a user alights within a time range T.
-        \item \texttt{load\_X$_{LT}$} The average number of passengers traveling from the stop X to its next stop in the line L within the time range T. Can also be seen as the average load of a transport vehicle.
+        \item \texttt{board\_X$_{LT}$} Number of users that stop X is boarded, optionally restricting to a line L and a time range T.
+        \item \texttt{alight\_X$_{LT}$} Number of users that stop X is alighted, optionally restricting to a line L and a time range T.
+        \item \texttt{board\_L$_T$}  Number of users that line L is boarded, optionally restricting to a time range T.
+        \item \texttt{alight\_L$_T$} Number of users that line L is alighted, optionally restricting to a time range T.
+        \item \texttt{board\_T} Number of users boarding within a time range T.
+        \item \texttt{alight\_T} Number of users alighting within a time range T.
+        \item \texttt{load\_X$_{LT}$} The average number of passengers traveling from the stop X to its next stop in the line L within the time range T. Can also be seen as the average load of the vehicle.
     \end{itemize}
-    \item Movement patterns, or queries that focus on the sequence of trip stages. With his kind of queries we can obtain the number of times a stop was used to switch lines or the number of trips that started on a stop with another specific stop as the final destination. In this work we consider the following queries of this kind:
+    \item Queries about user trips patterns. With his kind of queries we can obtain the number of times a stop was used to switch lines or the number of trips that started on a stop with another specific stop as the final destination. In this work we consider the following queries of this kind:
     \begin{itemize}
         \item \texttt{start\_X$_{LT}$} User trips starting at a stop X, optionally restricting to a line L and a time range T.
         \item \texttt{end\_X$_{LT}$} User trips ending at a stop X, optionally restricting to a line L and a time range T.
-        \item \texttt{switch\_X$_{LT}$} Number of trips in which the stop X was used to switch lines, optionally restricting to a line L and a time range T.
+        \item \texttt{switch\_X$_{L\textsubscript{1}L\textsubscript{2}T}$} Number of trips in which the stop X was used to switch lines, optionally restricting to a line L\textsubscript{2} and a time range T.
         \item \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} User trips that originate at stop X to end at stop Y, both being optionally restricted to a line and time range.
         \item \texttt{start\_L$_T$} User trips starting at any stop from the line L, optionally restricting to a time range T.
-        \item \texttt{end\_L$_T$} User trips ending at any stop from the line L, optionally restricting to a time range T.
+        \item \texttt{end\_L$_T$} User trips ending at any stop from the line L, optionally restricting to a time range T. \ojo{revisar}
         \item \texttt{start\_T} User trips starting within a time range T.
         \item \texttt{end\_T} User trips ending within a time range T.
     \end{itemize}
@@ -228,11 +234,11 @@ In the context of public transportation networks, we are interested in solving t
 
 \section{Proposed Structures}
 \label{sec:ps}
-As of today, we are not aware of any indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{sec:rq}. For this reason, we propose two data structures, \acummname~(\acumm)~and~\ttctrname~(\ttctr). The former is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B. Finally, we introduce a more versatile alternative to \ttctr~that we call \ctrname~(\ctr).
+To the best of our knowledge, there is no indexing structure that would allow to efficiently represent trajectories that could also support all the kinds of queries described in Section~\ref{sec:rq}. For this reason, we propose two data structures, \ojo{UNA SOLA SOLUCION} \acummname~(\acumm)~and~\ttctrname~(\ttctr). The former is targeted for queries of type A, solving most aggregation queries in constant time, while the later can be used for queries of type B. Finally, we introduce a more versatile alternative to \ttctr~that we call \ctrname~(\ctr).
 
 \subsection{Common Data Structures}
 \label{sec:cs}
-Both \acumm~and \ttctr~need a network representation to be operated, along with information about the transport vehicle journeys. Therefore, the following structures represent a network with stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
+\ojo{TRATAR COMO UNA SOLA SOLUCION} Both \acumm~and \ttctr~need a network representation to be operated, along with information about the transport vehicle journeys. Therefore, the following structures represent a network with stops $s_i \in S = \{1,...|S|\}$, lines $l_i \in L = \{1,...|L|\}$ and journeys $j_i \in J^l = \{1,...|J^l|\}$. It is important to state that journeys are \textbf{not} identified by $j_i$, as the same $j_i$ can belong to several $J^l$ from different lines, so we speak about journey \textbf{codes} (jcodes) instead of journey identifiers.
 
 \begin{itemize}
     \item $lineStop_i(j)$ is the $j$th stop of line $l_i$
@@ -264,7 +270,7 @@ An example of these structures interacting together can be found at the Algorith
 
 \subsection{\acumm}
 \label{sec:acumm}
-As it has been stated previously in this paper, nowadays it could be relatively simple to gather massive information about user trips in every public transport; however, it is not necessary to store individually each trip. If there are two (or more) commuters sharing the same bus (train/tram/etc), they are also sharing the route, the stops (the time of each stop) and even the network. Therefore, a structure storing the aggregated data of the user trips would be a handy solution to solve (at least) queries of type A presented in section 3.
+As it has been stated previously in this paper, nowadays it could be relatively simple to gather massive information about user trips in every public transport; however, it is not necessary to store individually each trip. If there are two (or more) traveler sharing the same bus (train/tram/etc), they are also sharing the route, the stops (the time of each stop) and even the network. Therefore, a structure storing the aggregated data of the user trips would be a handy solution to solve (at least) queries of type A presented in section 3.
 
 \begin{figure}[h!]
   \includegraphics[scale=0.65]{Tmatrices.png}
@@ -272,7 +278,7 @@ As it has been stated previously in this paper, nowadays it could be relatively 
   \label{fig:tmatrix}
 \end{figure}
 
-Thus, we propose the T-Matrix, an accumulated solution that involves two-dimensional matrices of integers enabling aggregated queries by row, column, or window/range. In the context of a public transportation network, it would be useful to solve flexible line-centered queries; that is, queries that support aggregation by any dimension. Therefore, it could be possible to aggregate either by time-interval (e.g. number of users got on at any stop of the line on 2019/01/02); by stop (e.g. number of commuters that got on a bus at stop S); or by stop and time-interval.
+Thus, we propose the T-Matrix, an accumulated solution that involves two-dimensional matrices of integers enabling aggregated queries by row, column, or window/range. In the context of a public transportation network, it would be useful to solve flexible line-centered queries; that is, queries that support aggregation by any dimension. Therefore, it could be possible to aggregate either by time-interval (e.g. number of users got on at any stop of the line on 2019/01/02); by stop (e.g. number of passengers that got on a bus at stop S); or by stop and time-interval.
 
 In a na\"{\i}ve representation, it would only be necessary a two-dimensional matrix having stops as rows and journeys as columns, so each cell would have an integer representing the number of passengers that got on the vehicle at a specific stop in a particular time (journey). The main issue with this approach is that for each query it would be necessary to sum integer by integer each cell of the solution; hence, if we are trying to compute how many people got on a bus in several consecutive stops during a time interval (several consecutive journeys) it would be necessary to sum all the cells within the submatrix that match these journeys and stops.
 
@@ -412,7 +418,7 @@ A fundamental weakness of \ttctr~is that it requires several binary search opera
     \item We need to restrict the line of a final stop, in queries such as \texttt{end\_X$_{L}$} or \texttt{from\_X\_to\_Y$_{L}$} (and similar variations). Because the final stops belong to separate entries of the vocabulary that do not encode line identifiers, to restrict a stop $Y\in S$ to a line $l\in L$ we need to search for every possible expanded pattern $W_l,Y...$, for every stop $W$ from the line $l$ that could have been boarded before alighting at $Y$. While it looks tempting to address this issue by modifying the design of \ttctr~so that final stops also encode line identifiers, this would in turn make queries that do not restrict the line of the final stop inefficient, and we would need to perform a new query for every combination of $(Y, l_i) \forall l_i \in L$, as in the previous case. \marginpar{\tiny Viendo los experimentos, uno se puede preguntar si no habria quedado mejor meter lineas en paradas finales...}
 \end{itemize}
 
-These weaknesses motivated us to develop a second version, \ctr, which reduces the complexity of the queries that restrict the final line, and delegates line checks on a new WM, allowing for more space-time trade-off. As in \ttctr, the input trips need to be sorted by the same criteria, but in \ctr~we use three complementary structures to represent each component of the sequence, as shown in Figure~\ref{fig:example_xctr}:
+These weaknesses motivated us to develop a second version, \ctr, which reduces the complexity of the queries that restrict the final line, and delegates line checks on a new WM, allowing a better space-time trade-off. As in \ttctr, the input trips need to be sorted by the same criteria, but in \ctr~we use three complementary structures to represent each component of the sequence, as shown in Figure~\ref{fig:example_xctr}:
 \begin{enumerate}[(i)]
     \item An adapted Compressed Suffix Array (\texttt{CSA}) over the stop identifiers of all trips, concatenated into a string with additional terminator symbols $\$$ appended at the end of each trip. As in the \texttt{CSA} from \ttctr, we make these $\$$ symbols maintain the order of the trips and cyclical in $\Psi$. Because this time we do not encode line and stop identifiers together and \texttt{CSA} only encodes stops, there is no need for a complex vocabulary anymore.
     \item \texttt{WML}: Aligned to the entries of (i) there is a Wavelet Matrix (WM) for the line identifiers of each stop. Aligned to the $\$$ section we duplicate the starting lines of each trip. As a trivial optimization, we build a separate WM for every stop, allowing us to save space due to the fact that a single stop does not usually belong to many lines, thus the average height of these WM is no larger (and usually smaller) than the height of a single WM.
@@ -456,7 +462,7 @@ As \ctr~is a complete representation of the collection of trips, we are able to 
  \label{alg:extract}
 \end{algorithm}
 
-A more complex query that we can solve with \ctr~is ``number of trips that started from a stop \DataSty{s$_a$} and ended at a stop \DataSty{s$_z$}'', which can be further restricted to specific starting and ending lines and a time window (\texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} in Section~\ref{sec:rq}). The pseudocode for the full version of such query can be found at the Algorithm~\ref{alg:xy}. This algorithm relies heavily on the abstract function \FuncSty{GetRange}, which when applied to a CSA, delimits the range of entries of $\Psi$ that match a queried string pattern, while on a WM it works as the $range$ operation defined in Section~\ref{sec:wm}, also reporting the range in the last level of a WM corresponding to the entries of a single queried symbol within a range in the encoded sequence (equivalent to two \FuncSty{TrackDown} operations on the first and last occurrence of the queried symbol, but more time efficient).
+A more complex \ojo{mas que que?} query that we can solve with \ctr~is ``number of trips that started from a stop \DataSty{s$_a$} and ended at a stop \DataSty{s$_z$}'', which can be further restricted to specific starting and ending lines and a time window (\texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} in Section~\ref{sec:rq}). The pseudocode for the full version of such query can be found at the Algorithm~\ref{alg:xy}. This algorithm relies heavily on the abstract function \FuncSty{GetRange}, which when applied to a CSA, delimits the range of entries of $\Psi$ that match a queried string pattern, while on a WM it works as the $range$ operation defined in Section~\ref{sec:wm}, also reporting the range in the last level of a WM corresponding to the entries of a single queried symbol within a range in the encoded sequence (equivalent to two \FuncSty{TrackDown} operations on the first and last occurrence of the queried symbol, but more time efficient).
 
 \begin{algorithm}[hbt!]
 \SetKwData{la}{$l_a$}\SetKwData{lz}{$l_z$}\SetKwData{sa}{s$_a$}\SetKwData{sz}{s$_z$}\SetKwData{ta}{t$_a$}\SetKwData{tz}{t$_z$}\SetKwData{pattern}{pattern}\SetKwData{left}{left}\SetKwData{right}{right}\SetKwData{csa}{CSA}\SetKwData{wmj}{WMJ}\SetKwData{leftzero}{left$_0$}\SetKwData{rightzero}{right$_0$}\SetKwData{a}{a}\SetKwData{z}{z}\SetKwData{ja}{j$_a$}\SetKwData{jz}{j$_z$}\SetKwData{n}{n}\SetKwData{ap}{a'}\SetKwData{zp}{z'}\SetKwData{offset}{offset}
@@ -503,9 +509,9 @@ We will now proceed to explain the Algorithm~\ref{alg:xy} line by line:
     
     \item In \textbf{lines 10-12} we use the \FuncSty{TrackUp} operation, which is the inverse of \FuncSty{TrackDown}: it returns the root index given a leaf index of a WM. In this case, as the \FuncSty{a} and \FuncSty{z} we obtained in the previous step are also indexes in the last level of the \FuncSty{WML}, we use \FuncSty{TrackUp} to translate that range of indexes to the root of \texttt{WML} and therefore to the entries of the \texttt{CSA} as well. Note that this is a range inside the $\$$ section for trips with the same origin stop, final stop and starting line that includes all the trips for jcodes that span from \DataSty{j$_a$} to \DataSty{j$_z$}. The properties of our adapted \texttt{CSA} also ensure that this range maintains the same size after translation and it can also be directly translated to a range in the \DataSty{s$_z$}.
     
-    \item In \textbf{line 13} we obtain the starting index of the section for the stop \DataSty{s$_z$} with a \FuncSty{Select} operation over the bitvector D from \texttt{CSA}. This is necessary for operating on \texttt{WML} and \texttt{WMJ} to restrict the line and journeys for the final stop.
+    \item In \textbf{line 13} we obtain the starting position of the section for the stop \DataSty{s$_z$} in the CSA with a \FuncSty{Select} operation over the bitvector D from \texttt{CSA}. This is necessary for operating on \texttt{WML} and \texttt{WMJ} to restrict the line and journeys for the final stop.
     
-    \item In \textbf{line 14} the range \DataSty{a'}$..$\DataSty{z'} is trivially translated to the section for \DataSty{s$_z$} where we query \texttt{WML} to obtain the subrange for the line \DataSty{l$_z$}. Remember that \DataSty{WML}{(s$_z$)} represents only the lines for \DataSty{s$_z$}, therefore both the translated indexes and the resulting subrange indexes are relative and must be adjusted by \DataSty{offset}. This would have not been necessary if the optimization was not implemented, and absolute indexes would have been used.
+    \item In \textbf{line 14} the range \DataSty{a'}$..$\DataSty{z'} is trivially translated to the section for \DataSty{s$_z$} where we query \texttt{WML} to obtain the subrange for the line \DataSty{l$_z$}. Remember that \DataSty{WML}{(s$_z$)} represents only the lines for \DataSty{s$_z$}, therefore both the translated indexes and the resulting subrange indexes are relative and must be adjusted by \DataSty{offset}. This would have not been necessary if the optimization was not implemented, and absolute indexes would have been used. \ojo{Revisar muchos interrogantes}
     
     \item In \textbf{line 15} we obtain the jcode range analogously to line 8, but this time for \DataSty{l$_z$} and \DataSty{s$_z$}.
     
@@ -515,11 +521,15 @@ We will now proceed to explain the Algorithm~\ref{alg:xy} line by line:
 
 It is trivial to reuse the Algorithm~\ref{alg:xy} to answer queries with less constrains. For example, if we were only interested in restricting the starting line, we could return \DataSty{z}-\DataSty{a} after line 7. Or if we only wanted to restrict the ending line and time, we can do it by skipping the lines 4-12, and using directly \FuncSty{GetRange}{(\FuncSty{WML}{(s$_z$)},left-offset,right-offset,l$_z$)} in line 14. The complexity would increase if we restricted by a time window but not by lines, as would need to iterate through all possible lines for \DataSty{s$_a$} and \DataSty{s$_z$} to obtain the jcodes for each line and perform these operations on \texttt{WML} and \texttt{WMJ}. Fortunately, the number of lines that a single stop can belong to tends to be rather small in practice, thus with a careful implementation that avoids repeating computation the performance of such query scales well, as will be shown later in Section~\ref{sec:exp}. Finally, to obtain only the trips that started on a given stop we would simply need to set \DataSty{pattern} to $\{0,s_a\}$ in line 2, or alternatively to $\{s_z,0\}$ for the final stop, and skipping the operations on the sections of \DataSty{s$_z$} or $\$$, respectively.
 
-Of course, \ctr~can also be used to efficiently obtain other interesting information about trips, such as the top k most boarded stops, as shown in \cite{brisaboa2018compact}, with the additional possibility of differentiating stops that are only used to switch lines in \ctr. However, there is no known way of using this representation to obtain other kinds of information efficiently (e.g. the number of passengers in a journey between two stops).
+Of course, \ctr~can also be used to efficiently obtain other interesting information about trips, such as the top k most boarded stops, as shown in \cite{brisaboa2018compact} \ojo{NO}, with the additional possibility of differentiating stops that are only used to switch lines in \ctr. However, to the best of our knowledge, there is no known way of using this representation to obtain other kinds of information efficiently (e.g. the number of passengers in a journey between two stops).
 
 \subsection{Analyzing \acumm, \ttctr~and \ctr}
+\ojo{Mucho espacio}
 \label{sec:comp}
-To illustrate the application of each representation, as well as highlight the motivation for the development of \ctr, in this section we discuss in detail the worst case time complexities of each query described in Section~\ref{sec:rq}.
+To illustrate the application of each representation, as well as highlight the motivation for the development of \ctr, in this section we discuss in detail the worst case time complexities of each query described in Section~\ref{sec:rq}. 
+
+Being $l$ the number of lines we restrict to, $|L|$ the total number of lines represented, $|S|$ the number of stops in the line L and $\bar{|J^l|}$ is the average number of jcodes per line.
+
 
 \begin{threeparttable}
 \centering
@@ -529,33 +539,35 @@ To illustrate the application of each representation, as well as highlight the m
 \hline
 Query &  \acumm & \ttctr & \ctr\\
 \hline
-\texttt{board\_X$_{LT}$} & $O(l)$\tnote{a} & $O(l\times \log(\bar{|J^l|}))$\tnote{abg} & \ctrq\tnote{b} \\
-\texttt{alight\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} & Hard\tnote{cd} \\
-\texttt{board\_L$_T$} & O(1) & $O(|S|\times \log(\bar{|J^l|}))$\tnote{beg} & $O(|S| \times \ctrq)$\tnote{be} \\
-\texttt{alight\_L$_T$} & O(1) & $O(|S|\times \log(\bar{|J^l|}))$\tnote{bceg} & $O(|S| \times \ctrq)$\tnote{bce} \\
-\texttt{board\_T} & $O(|L|)$\tnote{f} & Hard\tnote{d} & Hard\tnote{d} \\
-\texttt{alight\_T} & $O(|L|)$\tnote{f} & Hard\tnote{cd} & Hard\tnote{cd} \\
-\texttt{load\_X$_{LT}$} & $O(l)$\tnote{a} & Hard\tnote{cd} & Hard\tnote{cd} \\
+\texttt{board\_X$_{LT}$} & $O(l)$ & $O(l\times \log(\bar{|J^l|}))$\tnote{$\otimes$} & \ctrq\tnote{$\otimes$} \\
+\texttt{alight\_X$_{LT}$} & $O(l)$ & Hard\tnote{$\ddagger$$\diamondsuit$} & Hard\tnote{$\ddagger$$\diamondsuit$} \\
+\texttt{board\_L$_T$} & O(1) & $O(|S|\times \log(\bar{|J^l|}))$\tnote{$\otimes$} \hspace{0.4cm} & $O(|S| \times \ctrq)$\tnote{$\otimes$} \\
+\texttt{alight\_L$_T$} & O(1) & $O(|S|\times \log(\bar{|J^l|}))$\tnote{$\otimes$$\ddagger$} & $O(|S| \times \ctrq)$\tnote{$\otimes$$\ddagger$} \\
+\texttt{board\_T} & $O(|L|)$ & Hard\tnote{$\diamondsuit$} & Hard\tnote{$\diamondsuit$} \\
+\texttt{alight\_T} & $O(|L|)$ & Hard\tnote{$\ddagger$$\diamondsuit$} & Hard\tnote{$\ddagger$$\diamondsuit$} \\
+\texttt{load\_X$_{LT}$} & $O(l)$ & Hard\tnote{$\ddagger$$\diamondsuit$} & Hard\tnote{$\ddagger$$\diamondsuit$} \\
 \hline
-\texttt{start\_X$_{LT}$} & - & \ttctrq\tnote{b} & \ctrq\tnote{b} \\
-\texttt{end\_X$_{LT}$} & - & $O(|S|\times \ttctrq)$\tnote{be} & \ctrq\tnote{b} \\
-\texttt{switch\_X$_{LT}$} & - & \ttctrq\tnote{b} & \ctrq\tnote{b} \\
-\texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} & - & $O(|S|\times \ttctrq)$\tnote{be} & \ctrq\tnote{b} \\
-\texttt{start\_L$_T$} & - & $O(|S|\times \ttctrq)$\tnote{be}~~~ & $O(\log(|L|\times\bar{|J^l|}))$\tnote{fg} \\
-\texttt{end\_L$_T$} & - & Hard\tnote{d} & $O(|S| \times \ctrq)$\tnote{be} \\
-\texttt{start\_T} & - & Hard\tnote{d} & $O(|L| \times \log(|L|\times\bar{|J^l|}))$\tnote{fg}~~ \\
-\texttt{end\_T} & - & Hard\tnote{d} & Hard\tnote{d} \\
+\texttt{start\_X$_{LT}$} & - & \ttctrq\tnote{$\otimes$} & \ctrq\tnote{$\otimes$} \\
+\texttt{end\_X$_{LT}$} & - & $O(|S|\times \ttctrq)$\tnote{$\otimes$} & \ctrq\tnote{$\otimes$} \\
+\texttt{switch\_X$_{LT}$} & - & \ttctrq\tnote{$\otimes$} & \ctrq\tnote{$\otimes$} \\
+\texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} & - & $O(|S|\times \ttctrq)$\tnote{$\otimes$} & \ctrq\tnote{$\otimes$} \\
+\texttt{start\_L$_T$} & - & $O(|S|\times \ttctrq)$\tnote{$\otimes$}~~~ & $O(\log(|L|\times\bar{|J^l|}))$ \\
+\texttt{end\_L$_T$} & - & Hard\tnote{$\diamondsuit$} & $O(|S| \times \ctrq)$\tnote{$\otimes$} \\
+\texttt{start\_T} & - & Hard\tnote{$\diamondsuit$} & $O(|L| \times \log(|L|\times\bar{|J^l|}))$~~ \\
+\texttt{end\_T} & - & Hard\tnote{$\diamondsuit$} & Hard\tnote{$\diamondsuit$} \\
 \hline
 \end{tabular}
 
+\ojo{Dar visto bueno}
+
 \begin{tablenotes}
-\item[a] $l$ is the number of lines we restrict to.
-\item[b] The complexity of varies with the restrictions. See discussion.
-\item[c] May include false positives.
-\item[d] Not practical to solve with the indexing capabilities of this representation.
-\item[e] $|S|$ is the number of stops in the line L.
-\item[f] $|L|$ is the total number of lines represented.
-\item[g] $\bar{|J^l|}$ is the average number of jcodes per line.
+%\item[a] $l$ is the number of lines we restrict to.
+\item[$\otimes$] The complexity of varies with the restrictions. See discussion.
+\item[$\ddagger$] May include false positives.
+\item[$\diamondsuit$] Not practical to solve with the indexing capabilities of this representation.
+%\item[e] $|S|$ is the number of stops in the line L.
+%\item[f] $|L|$ is the total number of lines represented.
+%\item[g] $\bar{|J^l|}$ is the average number of jcodes per line.
 \end{tablenotes}
 \end{threeparttable}
 
@@ -565,11 +577,12 @@ However, when only the time is restricted, every line that the queried stop belo
 
 \begin{itemize}
     \item \texttt{board\_X$_{LT}$} This can be solved easily in the \acumm, as there are aggregated matrices for boarding stops, even though it is necessary to access a separate matrix for every line queried, hence $O(l)$. For \ttctr, the number of occurrences for the stop X is counted by delimiting its range on \FuncSty{D} (with a constant time $select$ operation) and filtering down the \texttt{WM} if needed. For \ctr, the filtering is done through \FuncSty{WML} and \FuncSty{WMJ}, and after that we must subtract the occurrences of final stops, obtained by one \texttt{end\_X$_{LT}$} with the same restrictions.
-    \item \texttt{alight\_X$_{LT}$} Both in \ttctr~and \ctr, the only alighting stops that are explicitly represented are the final stops. To obtain an approximated count of the rest of them, we would need to extract and examine all the occurrences for \texttt{board\_W$_{LT}$} for every W that could have been boarded before X, as the worst-case time complexity of solving with their index operations is prohibitive. On the other hand, it can be solved much faster in \acumm~by accessing the alighting matrices.
+    \item \texttt{alight\_X$_{LT}$} Both in \ttctr~and \ctr, the only alighting stops that are explicitly represented are the final stops. To obtain an approximated count of the rest of them, we would need to extract and examine all the occurrences for \texttt{board\_W$_{LT}$} for every stop W that could have been boarded before X, as the worst-case time complexity of solving with their index operations is prohibitive. On the other hand, it can be solved much faster in \acumm~by accessing the alighting matrices.
     \item \texttt{board\_L$_T$} Straightforward in \acumm, as it only needs to access one matrix. For \ttctr~we must filter through the \texttt{WM} for every stop from L. While in \ctr~the total number of occurrences of line L can be calculated in one $O(\log|L|)$ operation (with additional filtering through \FuncSty{WMJ} if needed), we need to subtract the occurrences of start\_L$_T$ and end\_L$_T$, the later having a greater complexity of $O(|S| \times \ctrq)$.
+    \ojo{Consultas sin sentido}
     \item \texttt{alight\_L$_T$} Can be approximated both in \ttctr~and \ctr~with board\_L$_T$, given that every user that boards on a line is expected to alight from it within a reasonable time.
     \item \texttt{board\_T} and \texttt{alight\_T} Although \acumm, \ttctr~and \ctr~could solve it by applying board\_L$_T$ $|L|$ times, this would imply a prohibitive cost for both \ttctr~and \ctr, where extracting all the trips would be preferred in practice.
-    \item \texttt{load\_X$_{LT}$} It is possible to solve this kind of query using both, alighting and boarding matrices. Knowing how many commuters got on and off the vehicle previously to one particular point makes trivial to determine how many of them are in the vehicle at each tract. This method is easily adapted to measure the average number through an interval of time.
+    \item \texttt{load\_X$_{LT}$} It is possible to solve this kind of query using both, alighting and boarding matrices. Knowing how many travelers got on and off the vehicle previously to one particular point makes trivial to determine how many of them are in the vehicle at each tract. This method is easily adapted to measure the average number through an interval of time.
     \item \texttt{start\_X$_{LT}$} Cannot be solved in \acumm. In the two other representations, we need to the range for the pattern $\$X$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed.
     \item \texttt{end\_X$_{LT}$} In \ctr~it is solved similarly to \texttt{start\_X$_{LT}$}, by delimiting the range for the pattern $X\$$ in the \FuncSty{CSA} and filtering down \FuncSty{WML} and \FuncSty{WMJ} if needed. It can be much more complex for \ttctr, where the only way to restrict a line is to make a new query for every stop that could have been boarded before X in that line, which is a problem detailed at the start of Section~\ref{sec:ctr}.
     \item \texttt{switch\_X$_{LT}$} Calculated as board\_X$_{LT}$ - start\_X$_{LT}$.
@@ -586,22 +599,22 @@ In this section we discuss the practical performance of our structures. To evalu
 
 \subsection{Experimental dataset}
 \label{sec:data}
-Using real GTFS\footnote{\url{https://developers.google.com/transit/gtfs/}} descriptions of bus routes and schedules, we generated a synthetic dataset of user trips that aims to realistically imitate real user behaviour over a month. In this work, we have combined the GTFS obtained for the networks of urban\footnote{Provided by EMT \url{http://www.emtmadrid.es}} and interurban\footnote{Provided by CRTM \url{http://www.crtm.es}} buses for the city of Madrid. The network model is extracted and user trips are generated with the following general steps:
+Using real GTFS\footnote{\url{https://developers.google.com/transit/gtfs/}} descriptions of bus routes and schedules, we generated a synthetic dataset of user trips that aims to realistically imitate real user behaviour over a month. In this work, we have combined the GTFS obtained for the networks of urban\footnote{Provided by EMT \url{http://www.emtmadrid.es}} and interurban\footnote{Provided by CRTM \url{http://www.crtm.es}} buses for the city of Madrid. The network model was extracted and user trips were generated with the following general steps:
 
 \begin{enumerate}
-    \item Parse stop, route and trip identifiers. This usually produces two lines per route, one for each direction. With this we are able to build the common structures $lineStop$ and $stopLine$.
-    \item Connect stops that are on a short walking distance (100 meters) from each other, or appear sequentially on the same line.
-    \item Parse the schedules for bus trips.
-    \item Generate a month of journeys from the schedules, differentiating days of week. From this we compute $avgTime$ and $initialTime$.
-    \item Generate user trips. A trip starts from a random stop, day and journey and simulates boarding that journey and traversing it. After each traversed stop, the user may end the trip with a probability that starts at zero and increases by 1\% for every stop visited. Additionally, there is a fixed probability of attempting to switch lines at the current stop, if there is a journey available at that stop within the allowed waiting time (30 minutes) and from a different line\footnote{The reverse of the current line is also disallowed.}. Switching lines is also attempted when the end of the current line is reached.
-    \item We persist these generated trips as sequences of stages \\ $<<line,journey,boarding\_stop>, <line,journey,alighting\_stop>>$,\\ where a boarding and alighting stop naturally share the same line and journey within the same stage. This results in the same number of stages as lines have been used. With the parameters used, about 56\% of our trips have one stage, 33\% have two, 9\% have three and 2\% have four.
+    \item We parsed stop, route and trip identifiers. This produced two lines per route in almost all cases, one for each direction. With this we were able to build the common structures $lineStop$ and $stopLine$.
+    \item We connected stops that are on a short walking distance (100 meters) from each other, or appear sequentially on the same line.
+    \item We parsed the schedules for bus trips.
+    \item We generated a month of journeys from the schedules, differentiating days of week. From this we computed $avgTime$ and $initialTime$.
+    \item User trips were generated. A trip starts from a random stop, day and journey and simulates boarding that journey and traversing it. After each traversed stop, the user may end the trip with a probability that starts at zero and increases by 1\% for every stop visited. Additionally, there is a fixed probability of attempting to switch lines at the current stop, if there is a journey available at that stop within the allowed waiting time (30 minutes) and from a different line\footnote{The reverse of the current line is also disallowed.}. Switching lines is also attempted when the end of the current line is reached.
+    \item We persisted these generated trips as sequences of stages \\ $<<line,journey,boarding\_stop>, <line,journey,alighting\_stop>>$,\\ where a boarding and alighting stop naturally share the same line and journey within the same stage. This results in the same number of stages as lines have been used. With the parameters used, about 56\% of our trips have one stage, 33\% have two, 9\% have three and 2\% have four.
 \end{enumerate}
 
 With this approach we have generated a dataset of ten million trips, over a real network consisting of 11021 stops, 1048 lines for a simulated month\footnote{A period of 31 days, starting with a Monday.}, with an average of 1622 journeys per line and a maximum of 9980. We consider that this synthetic dataset is of enough accuracy and size to obtain significant results when studying the compression capabilities and performance of our representations.
 
 \subsection{Space requirements}
 \label{sec:space}
-We have measured the sizes of all the individual components of our representation in memory when built over the experimental dataset. We present the sizes of our common structures, followed by the \acumm. After that, we compare the compression achieved with \ttctr~and \ctr.
+We have measured the sizes of all the individual components of our representation in memory built over the experimental dataset. We present the sizes of our common structures, followed by the \acumm. After that, we compare the compression achieved with \ttctr~and \ctr.
 
 For the \texttt{CSA} structures from \ttctr~and \ctr, we experiment with the $t_\Psi$ (sampling interval) factors of 32, 128 and 512. For the \texttt{WM} present in \ttctr, as well as in the two \texttt{WM} from \ctr, we analyze the space required by the \texttt{RRR} bitvector described in \cite{Raman:2002:SID:545381.545411}, using block sizes of 32, 64 and 128, and compare it against a plain bitvector with a rank structure, which we call \texttt{RG32}.
 
