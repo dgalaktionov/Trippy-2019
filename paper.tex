@@ -22,7 +22,7 @@
 \usepackage{xcolor}
 \usepackage{fixltx2e}
 
-\newcommand{\acumm}{T-Matrices} % T is for Total!
+\newcommand{\acumm}{T-Matrices} % T is for Trips!
 \newcommand{\acummname}{\mathsf{Trip-Matrices}}
 \newcommand{\ctr}{XCTR}
 \newcommand{\ctrname}{\mathsf{eXtended~Compact~Trip~Representation}}
@@ -37,7 +37,7 @@
 
 \begin{document}
 %
-\title{New Trippy Structure \thanks{Funded in part by European Union`s Horizon 2020 research and innovation programme
+\title{Improved structures to solve aggregated queries for trips over public transportation networks \thanks{Funded in part by European Union`s Horizon 2020 research and innovation programme
 under the Marie Sklodowska-Curie grant agreement No 690941 (project
 BIRDS). The Spanish group is also partially funded by Xunta de Galicia/FEDERUE
 [CSI: ED431G/01; GRC: ED431C 2017/58; GEMA:IN852A
@@ -69,8 +69,9 @@ Computer Science Department, Universidad de Concepci\'on, Concepci\'on, Chile \a
 \maketitle              % typeset the header of the contribution
 %
 \begin{abstract}
-The abstract should briefly summarize the contents of the paper in
-15--250 words.
+In order to efficiently store and analyze large datasets of passenger trips over public transportation networks, one promising approach is the use of a representation based of compact data structures.
+
+In this work we propose a solution based on two complementary representations, \acumm~and~\ttctr, with an alternative for the later called \ctr. Overall, with our representations we were able to store a dataset of ten million trips in around 100 MB, supporting a wide range of queries in the order of microseconds.
 
 \keywords{Compact structures  \and Compression \and Trajectories}
 \end{abstract}
