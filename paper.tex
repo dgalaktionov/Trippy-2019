@@ -18,7 +18,9 @@
 \usepackage{amsmath}
 \usepackage{threeparttable}
 \usepackage{multirow}
+\usepackage{caption}
 \usepackage[margin=0pt,skip=1pt]{subcaption}
+\captionsetup{compatibility=false}
 \usepackage{xcolor}
 \usepackage{fixltx2e}
 
@@ -72,6 +74,12 @@ Computer Science Department, Universidad de Concepci\'on, Concepci\'on, Chile \a
 In order to efficiently store and analyze large datasets of passenger trips over public transportation networks, one promising approach is the use of a representation based of compact data structures.
 
 In this work we propose a solution based on two complementary representations, \acumm~and~\ttctr, with an alternative for the later called \ctr. Overall, with our representations we were able to store a dataset of ten million trips in around 100 MB, supporting a wide range of queries in the order of microseconds.
+
+\ojo{sin acabar}
+Storing and efficiently analyzing large datasets of passenger's trips over public transportation networks brings the ability to gather the actual user's demands and consequently sets the basis to balance both the offer and such demands. We show that the use of compact data structures makes up a promising representation of passenger's trips that not only permits us to reduce the space needed to store them, but also provides efficient access operations at query time.
+
+In this work, we propose a solution based on two complementary representations, named \acumm~and~\ttctr. The former excels at operations XXX, whereas the later excels at operations YYY. In addition, we propose a variant of \ttctr\ named \ctr\ that performs better at operations XXX at the cost of losing performance at ... with an alternative for the later called \ctr. Overall, with our representation we were able to represent a dataset of ten million trips in around 100 MB, while supporting a wide range of queries in the order of microseconds. \ojo{non sei se se pode explicar a grandes rasgos e en pouco espazo que fan as 3 tecnicas, e cales son as suas vantaxes}
+
 
 \keywords{Compact structures  \and Compression \and Trajectories}
 \end{abstract}
@@ -654,8 +662,8 @@ In Table~\ref{tab:ttctr} we analyze the space occupied by the two structures of 
     \label{tab:ttctr}
     \begin{subtable}[t]{.30\linewidth}
     \vspace{-12pt}
-    \caption{\footnotesize (a)}
-    \vspace{-12pt}
+    \caption{}
+    %\vspace{-12pt}
     \begin{tabular}[t]{|l|l|r|}
         \hline
         t$_\Psi$ & bps & Size (MiB) \\
@@ -668,8 +676,8 @@ In Table~\ref{tab:ttctr} we analyze the space occupied by the two structures of 
     \end{subtable}%
     \begin{subtable}[t]{.40\linewidth}
     \vspace{-12pt}
-    \caption{\footnotesize (b)}
-    \vspace{-12pt}
+    \caption{}
+    %\vspace{-12pt}
     \begin{tabular}[t]{|l|l|r|}
         \hline
         Bitvector & bps & Size (MiB) \\
@@ -694,8 +702,8 @@ We also measured the occupied space of \ctr~in Table~\ref{tab:ctr}, where three 
     \label{tab:ctr}
     \begin{subtable}[t]{.28\linewidth}
     \vspace{-12pt}
-    \caption{\footnotesize (a)}
-    \vspace{-12pt}
+    \caption{}
+    %\vspace{-12pt}
     \begin{tabular}[t]{|l|l|r|}
         \hline
         t$_\Psi$ & bps & Size (MiB) \\
@@ -708,8 +716,8 @@ We also measured the occupied space of \ctr~in Table~\ref{tab:ctr}, where three 
     \end{subtable}
     \begin{subtable}[t]{.38\linewidth}
     \vspace{-12pt}
-    \caption{\footnotesize (b)}
-    \vspace{-12pt}
+    \caption{}
+    %\vspace{-12pt}
     \begin{tabular}[t]{|l|l|r|}
         \hline
         Bitvector & bps & Size (MiB) \\
@@ -723,8 +731,8 @@ We also measured the occupied space of \ctr~in Table~\ref{tab:ctr}, where three 
     \end{subtable}
     \begin{subtable}[t]{.30\linewidth}
     \vspace{-12pt}
-    \caption{\footnotesize (c)}
-    \vspace{-12pt}
+    \caption{}
+    %\vspace{-12pt}
     \begin{tabular}[t]{|l|l|r|}
         \hline
         Bitvector & bps & Size (MiB) \\
@@ -776,13 +784,13 @@ We demonstrate the main advantage of \ctr~over the older \ttctr~ in the Figure~\
 \begin{subfigure}{0.5\linewidth}
 \includegraphics[width=\linewidth]{experiments/start.eps}
 \vspace{-12pt}
-\caption{\footnotesize (a)}
+\caption{}
 \vspace{-12pt}
 \end{subfigure}%
 \begin{subfigure}{0.5\linewidth}
 \includegraphics[width=\linewidth]{experiments/end.eps}
 \vspace{-12pt}
-\caption{\footnotesize (b)}
+\caption{}
 \vspace{-12pt}
 \end{subfigure}
 \caption{Comparison of \texttt{start\_X$_{LT}$} (a) and \texttt{end\_X$_{LT}$} (b) queries, with all variants. Note the logarithmic scale for the y axis in (b)}
@@ -797,13 +805,13 @@ We can see more examples of this difference in performance between these two rep
 \begin{subfigure}{0.5\linewidth}
 \includegraphics[width=\linewidth]{experiments/xy0.eps}
 \vspace{-12pt}
-\caption{\footnotesize (a)}
+\caption{}
 \vspace{-12pt}
 \end{subfigure}%
 \begin{subfigure}{0.5\linewidth}
 \includegraphics[width=\linewidth]{experiments/xy1.eps}
 \vspace{-12pt}
-\caption{\footnotesize (b)}
+\caption{}
 \vspace{-12pt}
 \end{subfigure}
 \caption{Comparison of \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} queries, variating line (a) and starting time (b) restrictions}
@@ -818,13 +826,13 @@ When restricting to the end time, \ctr~consistently outperforms \ttctr, as shown
 \begin{subfigure}{0.5\linewidth}
 \includegraphics[width=\linewidth]{experiments/xy2.eps}
 \vspace{-12pt}
-\caption{\footnotesize (a)}
+\caption{}
 \vspace{-12pt}
 \end{subfigure}%
 \begin{subfigure}{0.5\linewidth}
 \includegraphics[width=\linewidth]{experiments/xy3.eps}
 \vspace{-12pt}
-\caption{\footnotesize (b)}
+\caption{}
 \vspace{-12pt}
 \end{subfigure}
 \caption{Comparison of \texttt{from\_X$_{LT}$\_to\_Y$_{LT}$} queries, variating line (a) and starting time (b) restrictions with a fixed ending time restriction}
@@ -839,13 +847,13 @@ The only query for which \ttctr~is clearly preferred over \ctr~is \texttt{board\
 \begin{subfigure}{0.5\linewidth}
 \includegraphics[width=\linewidth]{experiments/board.eps}
 \vspace{-12pt}
-\caption{\footnotesize (a)}
+\caption{}
 \vspace{-12pt}
 \end{subfigure}%
 \begin{subfigure}{0.5\linewidth}
 \includegraphics[width=\linewidth]{experiments/board_t.eps}
 \vspace{-12pt}
-\caption{\footnotesize (b)}
+\caption{}
 \vspace{-12pt}
 \end{subfigure}
 \caption{Comparison of \texttt{board\_X$_{LT}$} queries, with all variants (a) and also with all variants of \acumm~(b). Note the logarithmic scale in (b), as well as the measurements in nanoseconds}
